@@ -10,13 +10,15 @@ LRESULT CALLBACK WindowProcessMessage(HWND, UINT, WPARAM, LPARAM);
 
 
 typedef void (*quit_fn) ();
-typedef void (*draw_fn) ();
+typedef void (*draw_fn) (RL_RenderCommand* commands, int commands_len);
 
 quit_fn quit_f;
 draw_fn draw_f;
- 
 
-HWND NewWindow(HINSTANCE hInstance, quit_fn qf, draw_fn df) {
+
+static HWND window_handle;
+
+HWND W_NewWindow(HINSTANCE hInstance, quit_fn qf, draw_fn df) {
   // WINDOW SETUP
   const wchar_t window_class_name[] = L"My Window Class";
   static WNDCLASS window_class = { 0 };
@@ -28,7 +30,6 @@ HWND NewWindow(HINSTANCE hInstance, quit_fn qf, draw_fn df) {
   quit_f = qf;
   draw_f = df;
 
-  static HWND window_handle;
   window_handle = CreateWindow(window_class_name, L"Drawing Pixels", WS_OVERLAPPEDWINDOW | WS_VISIBLE,
     640, 300, 640, 480, NULL, NULL, hInstance, NULL);
   if (window_handle == NULL) { return window_handle; }
@@ -36,6 +37,9 @@ HWND NewWindow(HINSTANCE hInstance, quit_fn qf, draw_fn df) {
   return window_handle;
 }
 
+
+static RL_RenderCommand* W_commands;
+static int W_commands_len;
 
 LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM wParam, LPARAM lParam) {
 
@@ -47,39 +51,22 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM w
   case WM_DESTROY: {
     quit_f();
   } break;
-
   case WM_PAINT:
   {
-    draw_f(window_handle);
+    draw_f(window_handle, W_commands, W_commands_len);
   } break;
-  /*
-case WM_PAINT: {
-  static PAINTSTRUCT paint;
-  static HDC device_context;
-  device_context = BeginPaint(window_handle, &paint);
-
-  Graphics graphics(device_context);
-
-  // draw rect to clear screen
-  RECT window_rect;
-  GetWindowRect(window_handle, &window_rect);
-
-  //Rectangle(hDC, window_rect.left, window_rect.top, window_rect.right, window_rect.bottom);
-
-  FillRect(device_context, &window_rect, (HBRUSH)(COLOR_WINDOW + 1));
-
-
-
-  DrawCursorColor(device_context);
-
-
-  EndPaint(window_handle, &paint);
-} break;
-*/
-
   default: {
     return DefWindowProc(window_handle, message, wParam, lParam);
   }
   }
   return 0;
+}
+
+void frame_end(RL_RenderCommand* commands, int commands_len)
+{
+  W_commands = commands;
+  W_commands_len = commands_len;
+  InvalidateRect(window_handle, NULL, TRUE);
+  UpdateWindow(window_handle);
+
 }

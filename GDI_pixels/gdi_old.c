@@ -1,8 +1,3 @@
-#define UNICODE
-#define _UNICODE
-#include <windows.h>
-#include <stdbool.h>
-#include <stdint.h>
 
 
 // based on code from https://www.youtube.com/watch?v=q1fMa8Hufmg
