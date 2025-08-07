@@ -4,13 +4,14 @@ Arena* create_arena(int bytes)
 {
   Arena* a;
   a = (Arena*)malloc(sizeof(a));
-  void* data = malloc(bytes);
+  char* data = malloc(bytes);
   if (data == NULL)
   {
     exit(30);      // TODO abort or exit
+    return;
   }
 
-  a->data = (char*)data;
+  a->data = data;
   a->offset = 0;
   a->size = bytes;
   memset(a->data, 0xAB, a->size);
