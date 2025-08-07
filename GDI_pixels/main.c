@@ -45,7 +45,7 @@ int _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
   static HWND window_handle;
   window_handle = W_NewWindow(hInstance, OnQuit, VmPaint);
 
-  Arena* frameArena = create_arena(512); // 1 mb of ram for frame arena
+  Arena* frameArena = create_arena(1024*1024); // 1 mb of ram for frame arena
 
   while (!quit) {
 
@@ -57,9 +57,6 @@ int _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
     }
 
 
-    // push text
-    //RL_RenderCommand* command = rl_push_text(L"Render command text", 20);
-    // does not work, the text[256] is stack allocated, and gets trashed on method exit, 
     RL_RenderCommand* command = DrawCursorColor(frameArena);
 
     reduce -= 1;
@@ -84,10 +81,16 @@ RL_RenderCommand* DrawCursorColor(Arena* arena) {
   int g = GetGValue(color);
   int b = GetBValue(color);
 
+
+  // Wrap this in format string that returns a s_string
   TCHAR* text = arena_alloc(arena, 64);
   int c = swprintf_s(text, 64, L"Points: (%i, %i, %i)", r, g, b);
 
-  RL_RenderCommand* res = rl_push_text(arena, text, c);
+  s_string str;
+  str.capacity = 64;
+  str.data = text;
+  str.len = c;
+  RL_RenderCommand* res = rl_push_text(arena, str);
 
   return res;
 }
@@ -122,7 +125,7 @@ void VmPaint(HWND window_handle, RL_RenderCommand* commands, int num_commands ) 
       case RL_RECTANGLE:
         break;
       case RL_TEXT:
-        TextOutW(memDC, 0, 0, commands[i].text, commands[i].text_len);
+        TextOutW(memDC, 0, 0, commands[i].text.data, commands[i].text.len);
         break;
       }
   }

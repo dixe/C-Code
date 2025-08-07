@@ -1,6 +1,6 @@
 # pragma once
 #include "arena.h"
-
+#include "string.h"
 
 
 typedef enum  {
@@ -11,8 +11,7 @@ typedef enum  {
 typedef struct 
 {
   enum RL_RenderCommandType commandType;
-  wchar_t* text;
-  int text_len;
+  s_string text;
   // color
   // position
   // size?
@@ -25,4 +24,4 @@ typedef struct
 void rl_push_rectangle();
 
 // push text output to command buffer
-RL_RenderCommand* rl_push_text(Arena* arena, wchar_t* text, int len);
+RL_RenderCommand* rl_push_text(Arena* arena, s_string text);

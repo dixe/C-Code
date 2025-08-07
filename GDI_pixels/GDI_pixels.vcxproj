@@ -23,6 +23,7 @@
     <ClCompile Include="gdi_renderer.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="render_layer.c" />
+    <ClCompile Include="string.h" />
     <ClCompile Include="window.c" />
   </ItemGroup>
   <ItemGroup>
@@ -129,6 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
