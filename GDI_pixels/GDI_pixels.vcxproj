@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="arena.c" />
     <ClCompile Include="gdi_renderer.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="render_layer.c" />
     <ClCompile Include="window.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="arena.h" />
     <ClInclude Include="gdi_renderer.h" />
     <ClInclude Include="render_layer.h" />
     <ClInclude Include="window.h" />

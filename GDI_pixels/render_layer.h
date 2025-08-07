@@ -1,5 +1,5 @@
 # pragma once
-
+#include "arena.h"
 
 
 
@@ -25,4 +25,4 @@ typedef struct
 void rl_push_rectangle();
 
 // push text output to command buffer
-RL_RenderCommand* rl_push_text(wchar_t* text, int len);
+RL_RenderCommand* rl_push_text(Arena* arena, wchar_t* text, int len);

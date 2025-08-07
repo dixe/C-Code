@@ -7,7 +7,7 @@
 #include "window.h"
 #include "gdi_renderer.h"
 #include "render_layer.h"
-
+#include "arena.h"
 // based on code from https://www.youtube.com/watch?v=q1fMa8Hufmg
 
 
@@ -31,11 +31,15 @@ void OnQuit() {
   quit = true;
 }
 
+RL_RenderCommand* DrawCursorColor(Arena* arena);
+
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow) {
 
   // WINDOW SETUP
   static HWND window_handle;
   window_handle = W_NewWindow(hInstance, OnQuit, VmPaint);
+
+  Arena* frameArena = create_arena(512); // 1 mb of ram for frame arena
 
   while (!quit) {
 
@@ -48,12 +52,16 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCm
 
 
     // push text
-    RL_RenderCommand* command = rl_push_text(L"Render command text", 20);
+    //RL_RenderCommand* command = rl_push_text(L"Render command text", 20);
+    // does not work, the text[256] is stack allocated, and gets trashed on method exit, 
+    RL_RenderCommand* command = DrawCursorColor(frameArena);
 
     reduce -= 1;
 
     // for rendering layer
     frame_end(command, 1);
+    arena_reset(frameArena);
+    // reset framea
   }
 
   return 0;
@@ -61,16 +69,21 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCm
 
 
 
-
-void DrawCursorColor(HDC hdc) {
+// could be program logic, maybe getCursor should use platform layer?
+// should use arena to allocate the text
+RL_RenderCommand* DrawCursorColor(Arena* arena) {
   COLORREF color = getCusorColor();
 
   int r = GetRValue(color);
   int g = GetGValue(color);
   int b = GetBValue(color);
-  TCHAR text[256];
-  int c = swprintf_s(text, 256, L"Points: (%i, %i, %i)", r, g, b);
-  TextOutW(hdc, 40, 100, text, c);
+
+  TCHAR* text = arena_alloc(arena, 64);
+  int c = swprintf_s(text, 64, L"Points: (%i, %i, %i)", r, g, b);
+
+  RL_RenderCommand* res = rl_push_text(arena, text, c);
+
+  return res;
 }
 
 
