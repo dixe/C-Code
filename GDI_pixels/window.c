@@ -43,9 +43,6 @@ static int W_commands_len;
 
 LRESULT CALLBACK WindowProcessMessage(HWND window_handle, UINT message, WPARAM wParam, LPARAM lParam) {
 
-  PAINTSTRUCT paint;
-  HDC hdc;
-
   switch (message) {
   case WM_QUIT:
   case WM_DESTROY: {

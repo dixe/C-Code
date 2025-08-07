@@ -1,5 +1,10 @@
-#define UNICODE
-#define _UNICODE
+#ifndef UNICODE 
+  #define UNICODE
+#endif
+#ifndef _UNICODE 
+  #define _UNICODE
+#endif
+
 #include <windows.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -26,14 +31,15 @@ COLORREF getCusorColor()
 
 static int reduce = 10000;
 
-void VmPaint(HWND window_handle);
+
+void VmPaint(HWND window_handle, RL_RenderCommand* commands, int num_commands);
 void OnQuit() {
   quit = true;
 }
 
 RL_RenderCommand* DrawCursorColor(Arena* arena);
 
-int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow) {
+int _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow) {
 
   // WINDOW SETUP
   static HWND window_handle;

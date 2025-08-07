@@ -4,11 +4,15 @@ Arena* create_arena(int bytes)
 {
   Arena* a;
   a = (Arena*)malloc(sizeof(a));
+  if (a == NULL) {
+    return NULL;
+  }
   char* data = malloc(bytes);
   if (data == NULL)
   {
+    
     exit(30);      // TODO abort or exit
-    return;
+    return NULL;
   }
 
   a->data = data;

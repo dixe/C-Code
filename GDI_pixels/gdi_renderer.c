@@ -1,4 +1,3 @@
-//#define UNICODE
 //#define _UNICODE
 //#include <windows.h>
 //#include <stdbool.h>
