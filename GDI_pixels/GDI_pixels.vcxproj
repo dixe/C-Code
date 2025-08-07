@@ -23,6 +23,7 @@
     <ClCompile Include="gdi_renderer.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="render_layer.c" />
+    <ClCompile Include="string.c" />
     <ClCompile Include="string.h" />
     <ClCompile Include="window.c" />
   </ItemGroup>

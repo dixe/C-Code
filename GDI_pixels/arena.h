@@ -9,7 +9,6 @@ typedef struct {
 
 Arena* create_arena(int bytes);
 
-
 void* arena_alloc(Arena* arena, int  bytes);
 
 void arena_reset(Arena* arena);

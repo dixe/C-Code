@@ -8,8 +8,8 @@
 #include <windows.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 #include "window.h"
+#include <stdio.h>
 #include "gdi_renderer.h"
 #include "render_layer.h"
 #include "arena.h"
@@ -81,16 +81,12 @@ RL_RenderCommand* DrawCursorColor(Arena* arena) {
   int g = GetGValue(color);
   int b = GetBValue(color);
 
+  s_string s = s_empty(arena, 64);
+  // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
+  // but this is ok
+  s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);
 
-  // Wrap this in format string that returns a s_string
-  TCHAR* text = arena_alloc(arena, 64);
-  int c = swprintf_s(text, 64, L"Points: (%i, %i, %i)", r, g, b);
-
-  s_string str;
-  str.capacity = 64;
-  str.data = text;
-  str.len = c;
-  RL_RenderCommand* res = rl_push_text(arena, str);
+  RL_RenderCommand* res = rl_push_text(arena, s);
 
   return res;
 }
@@ -125,7 +121,7 @@ void VmPaint(HWND window_handle, RL_RenderCommand* commands, int num_commands ) 
       case RL_RECTANGLE:
         break;
       case RL_TEXT:
-        TextOutW(memDC, 0, 0, commands[i].text.data, commands[i].text.len);
+        TextOutW(memDC, 0, 0, commands[i].text.data, (int) commands[i].text.len);
         break;
       }
   }

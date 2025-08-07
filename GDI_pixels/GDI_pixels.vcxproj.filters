@@ -33,6 +33,9 @@
     <ClCompile Include="string.h">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="string.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="window.h">
