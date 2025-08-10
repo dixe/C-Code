@@ -82,7 +82,7 @@ RL_RenderCommand* DrawCursorColor(Arena* arena) {
   i32 g = GetGValue(color);
   i32 b = GetBValue(color);
 
-  s_string s = s_empty(arena, 64);
+  s16 s = s_empty(arena, 64);
   // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
   // but this is ok
   s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);

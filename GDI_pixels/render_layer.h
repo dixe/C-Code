@@ -11,7 +11,7 @@ typedef enum  {
 typedef struct 
 {
   enum RL_RenderCommandType commandType;
-  s_string text;
+  s16 text;
   // color
   // position
   // size?
@@ -24,4 +24,4 @@ typedef struct
 void rl_push_rectangle();
 
 // push text output to command buffer
-RL_RenderCommand* rl_push_text(Arena* arena, s_string text);
+RL_RenderCommand* rl_push_text(Arena* arena, s16 text);
