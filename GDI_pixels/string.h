@@ -1,18 +1,18 @@
 #pragma once 
-#include <windows.h>
+
 #include "arena.h"
+#include "custom_types.h"
 
 
 typedef struct {
-  wchar_t* data;
-  size_t len;
-  size_t capacity;
+  c16* data;
+  size len;
+  size capacity;
 } s_string;
 
 
-s_string s_from_literal(wchar_t* lit_str);
+s_string s_from_literal(c16* lit_str);
 
-s_string s_empty_raw(wchar_t* buffer, int capacity);
+s_string s_empty_raw(c16* buffer, size capacity);
 
-
-s_string s_empty(Arena* arena, int capacity);
+s_string s_empty(Arena* arena, size capacity);

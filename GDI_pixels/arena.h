@@ -1,14 +1,15 @@
 #pragma once
 #include <Windows.h>
+#include "custom_types.h"
 
 typedef struct {
-  int size;
-  int offset;
-  char* data;
+  size size;
+  size offset;
+  byte* data;
 } Arena;
 
-Arena* create_arena(int bytes);
+Arena* create_arena(size bytes);
 
-void* arena_alloc(Arena* arena, int  bytes);
+void* arena_alloc(Arena* arena, size bytes);
 
 void arena_reset(Arena* arena);

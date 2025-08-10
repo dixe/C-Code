@@ -29,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="arena.h" />
+    <ClInclude Include="custom_types.h" />
     <ClInclude Include="gdi_renderer.h" />
     <ClInclude Include="render_layer.h" />
     <ClInclude Include="window.h" />

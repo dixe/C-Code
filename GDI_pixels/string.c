@@ -5,7 +5,7 @@
 // use this for literals, to s_string conversion
 
 
-s_string s_from_literal(wchar_t* lit_str) {
+s_string s_from_literal(c16* lit_str) {
   s_string s;
   s.data = lit_str;
   s.len = wcslen(lit_str);
@@ -13,7 +13,7 @@ s_string s_from_literal(wchar_t* lit_str) {
   return s;
 }
 
-s_string s_empty_raw(wchar_t* buffer, int capacity)
+s_string s_empty_raw(c16* buffer, size capacity)
 {
   s_string s;
   s.data = buffer;
@@ -22,9 +22,9 @@ s_string s_empty_raw(wchar_t* buffer, int capacity)
   return s;
 }
 
-s_string s_empty(Arena* arena, int capacity)
+s_string s_empty(Arena* arena, size capacity)
 {
-  wchar_t* buffer = arena_alloc(arena, capacity);
+  c16* buffer = arena_alloc(arena, capacity);
   
   s_string s;
   s.data = buffer;

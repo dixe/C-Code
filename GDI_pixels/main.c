@@ -13,6 +13,7 @@
 #include "gdi_renderer.h"
 #include "render_layer.h"
 #include "arena.h"
+#include "custom_types.h"
 // based on code from https://www.youtube.com/watch?v=q1fMa8Hufmg
 
 
@@ -32,14 +33,14 @@ COLORREF getCusorColor()
 static int reduce = 10000;
 
 
-void VmPaint(HWND window_handle, RL_RenderCommand* commands, int num_commands);
+void VmPaint(HWND window_handle, RL_RenderCommand* commands, i32 num_commands);
 void OnQuit() {
   quit = true;
 }
 
 RL_RenderCommand* DrawCursorColor(Arena* arena);
 
-int _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, int nCmdShow) {
+i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, i32 nCmdShow) {
 
   // WINDOW SETUP
   static HWND window_handle;
@@ -77,9 +78,9 @@ int _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
 RL_RenderCommand* DrawCursorColor(Arena* arena) {
   COLORREF color = getCusorColor();
 
-  int r = GetRValue(color);
-  int g = GetGValue(color);
-  int b = GetBValue(color);
+  i32 r = GetRValue(color);
+  i32 g = GetGValue(color);
+  i32 b = GetBValue(color);
 
   s_string s = s_empty(arena, 64);
   // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
@@ -93,7 +94,7 @@ RL_RenderCommand* DrawCursorColor(Arena* arena) {
 
 
 
-void VmPaint(HWND window_handle, RL_RenderCommand* commands, int num_commands ) {
+void VmPaint(HWND window_handle, RL_RenderCommand* commands, i32 num_commands ) {
 
   // should be in gdi renderer or maybe call it?
   // should run over all render commands and do them
@@ -114,14 +115,14 @@ void VmPaint(HWND window_handle, RL_RenderCommand* commands, int num_commands ) 
   FillRect(memDC, &clientRect, bgBrush);
 
   // Draw text into the memory DC
-  for (int i = 0; i < num_commands; i++)
+  for (i32 i = 0; i < num_commands; i++)
   {
     switch (commands[i].commandType)
     {
       case RL_RECTANGLE:
         break;
       case RL_TEXT:
-        TextOutW(memDC, 0, 0, commands[i].text.data, (int) commands[i].text.len);
+        TextOutW(memDC, 0, 0, commands[i].text.data, (i32) commands[i].text.len);
         break;
       }
   }

@@ -50,5 +50,8 @@
     <ClInclude Include="arena.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="custom_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
