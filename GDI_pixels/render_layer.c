@@ -42,7 +42,7 @@ void rl_vm_paint(HWND window_handle, RL_RenderCommands* commands) {
     case RL_RECTANGLE:
       break;
     case RL_TEXT:
-      TextOutW(memDC, 0, 0, command.text.data, (i32)command.text.len);
+      TextOutW(memDC, command.x, command.y, command.text.data, (i32)command.text.len);
       break;
     }
   }
@@ -85,7 +85,7 @@ void rl_end_frame()
 }
 
 // push text output to command buffer
-void rl_push_text(Arena* arena, s16 text)
+void rl_push_text(Arena* arena, s16 text, i32 x, i32 y)
 {  
   xsize next = commands.len;
   RL_RenderCommand* command = &commands.commands[next];
@@ -93,5 +93,6 @@ void rl_push_text(Arena* arena, s16 text)
 
   command->commandType = RL_TEXT;
   command->text = text; 
-
+  command->x = x;
+  command->y = y; 
 }

@@ -44,6 +44,7 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
   // WINDOW SETUP
   w_window* window_handle;
   window_handle = W_NewWindow(hInstance);
+  window_handle->quit_f = OnQuit;
 
   rl_setup(window_handle);
 
@@ -86,5 +87,6 @@ void DrawCursorColor(Arena* arena) {
   // but this is ok
   s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);
 
-  rl_push_text(arena, s);
+  w_mouse m = w_mouse_state();
+  rl_push_text(arena, s, m.x, m.y);
 }

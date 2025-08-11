@@ -17,6 +17,8 @@ typedef struct
 {
   RL_RenderCommandType commandType;
   s16 text;
+  i32 x;
+  i32 y;
   // color
   // position
   // size?
@@ -39,7 +41,13 @@ typedef struct {
 } w_window;
 
 
+typedef struct  {
+  i32 x;
+  i32 y;
+} w_mouse;
 
 w_window* W_NewWindow(HINSTANCE hInstance);
 
 void w_frame_end(RL_RenderCommands* commands);
+
+w_mouse w_mouse_state();

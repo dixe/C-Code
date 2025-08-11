@@ -1,5 +1,5 @@
 #include "window.h"
-
+#include <windowsx.h>
 
 LRESULT CALLBACK WindowProcessMessage(HWND, UINT, WPARAM, LPARAM);
 #if RAND_MAX == 32767
@@ -29,6 +29,13 @@ w_window* W_NewWindow(HINSTANCE hInstance) {
 
 static RL_RenderCommands* W_commands;
 
+static w_mouse _mouse;
+
+w_mouse w_mouse_state()
+{
+  return _mouse;
+}
+
 LRESULT CALLBACK WindowProcessMessage(HWND window_handle, u32 message, WPARAM wParam, LPARAM lParam) {
 
   switch (message) {
@@ -48,6 +55,11 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, u32 message, WPARAM wP
       EndPaint(window_handle, &ps);
     }
   } break;
+  case WM_MOUSEMOVE:
+  {
+    _mouse.x = GET_X_LPARAM(lParam);
+    _mouse.y = GET_Y_LPARAM(lParam);
+  }
   default: {
     return DefWindowProc(window_handle, message, wParam, lParam);
   }

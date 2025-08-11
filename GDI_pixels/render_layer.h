@@ -16,7 +16,7 @@ void rl_setup(w_window* w);
 void rl_push_rectangle();
 
 // push text output to command buffer
-void rl_push_text(Arena* arena, s16 text);
+void rl_push_text(Arena* arena, s16 text, i32 x, i32 y);
 
 
 
