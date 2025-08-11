@@ -12,7 +12,7 @@ s16 s_from_literal(c16* lit_str) {
   return s;
 }
 
-s16 s_empty_raw(c16* buffer, xsize capacity)
+s16 s_empty_raw(c16* buffer, isize capacity)
 {
   s16 s;
   s.data = buffer;
@@ -21,9 +21,9 @@ s16 s_empty_raw(c16* buffer, xsize capacity)
   return s;
 }
 
-s16 s_empty(Arena* arena, xsize capacity)
+s16 s_empty(Arena* arena, isize capacity)
 {
-  c16* buffer = arena_alloc(arena, c16, 128);
+  c16* buffer = arena_alloc(arena, c16, capacity);
   
   s16 s;
   s.data = buffer;

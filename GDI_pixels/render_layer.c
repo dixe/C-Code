@@ -87,7 +87,7 @@ void rl_end_frame()
 // push text output to command buffer
 void rl_push_text(Arena* arena, s16 text, i32 x, i32 y)
 {  
-  xsize next = commands.len;
+  isize next = commands.len;
   RL_RenderCommand* command = &commands.commands[next];
   commands.len += 1;
 

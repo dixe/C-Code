@@ -1,6 +1,6 @@
 #include "arena.h"
 
-Arena* create_arena(xsize bytes)
+Arena* create_arena(isize bytes)
 {
   Arena* a;
   a = (Arena*)malloc(sizeof(a));
@@ -23,20 +23,21 @@ Arena* create_arena(xsize bytes)
 }
 
 
-// TODO make macro 
 void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i32 flags)
 {
-  xsize bytes = objSize * count;
+  isize bytes = objSize * count;
 
-  if (arena->offset + bytes >= arena->cap)
+  isize padding = -(isize)(arena->data + arena->offset) & (align - 1);
+  isize available = arena->cap - arena->offset - padding;
+  if (available < 0)
   {
-    // out of range
+    // oom
     exit(32);
     return NULL;
   }
 
-  void* p = arena->data + arena->offset;
-  arena->offset += bytes;
+  void* p = arena->data + arena->offset + padding;
+  arena->offset += bytes + padding;;
   return p;
 }
 

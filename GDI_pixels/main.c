@@ -9,16 +9,15 @@
 
 #include <windows.h>
 #include <stdbool.h>
-#include <stdint.h>
-#include "window.h"
 #include <stdio.h>
+#include "window.h"
 #include "gdi_renderer.h"
 #include "render_layer.h"
 #include "arena.h"
 #include "custom_types.h"
 #include "s_string.h"
-// based on code from https://www.youtube.com/watch?v=q1fMa8Hufmg
 
+// based on code from https://www.youtube.com/watch?v=q1fMa8Hufmg
 
 static bool quit = false;
 
@@ -37,7 +36,24 @@ void OnQuit() {
   quit = true;
 }
 
-void DrawCursorColor(Arena* arena);
+
+// could be program logic, maybe getCursor should use platform layer?
+void DrawCursorColor(Arena* arena) {
+  COLORREF color = getCusorColor();
+
+  i32 r = GetRValue(color);
+  i32 g = GetGValue(color);
+  i32 b = GetBValue(color);
+
+  s16 s = s_empty(arena, 64);
+  // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
+  // but this is ok
+  s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);
+
+  w_mouse m = w_mouse_state();
+  rl_push_text(arena, s, m.x, m.y);
+}
+
 
 i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, i32 nCmdShow) {
 
@@ -72,21 +88,3 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
   return 0;
 }
 
-
-
-// could be program logic, maybe getCursor should use platform layer?
-void DrawCursorColor(Arena* arena) {
-  COLORREF color = getCusorColor();
-
-  i32 r = GetRValue(color);
-  i32 g = GetGValue(color);
-  i32 b = GetBValue(color);
-
-  s16 s = s_empty(arena, 64);
-  // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
-  // but this is ok
-  s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);
-
-  w_mouse m = w_mouse_state();
-  rl_push_text(arena, s, m.x, m.y);
-}

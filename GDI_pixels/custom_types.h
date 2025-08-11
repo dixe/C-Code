@@ -12,7 +12,7 @@ typedef uint64_t  u64;
 typedef float     f32;
 typedef double    f64;
 typedef uintptr_t uptr;
-typedef ptrdiff_t xsize;
+typedef ptrdiff_t isize;
 typedef size_t    usize;
 
 
