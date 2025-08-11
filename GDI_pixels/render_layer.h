@@ -1,22 +1,8 @@
 # pragma once
+
 #include "arena.h"
 #include "s_string.h"
-
-
-typedef enum  {
-  RL_RECTANGLE,
-  RL_TEXT
-} RL_RenderCommandType;
-
-typedef struct 
-{
-  RL_RenderCommandType commandType;
-  s16 text;
-  // color
-  // position
-  // size?
-  // rect?
-} RL_RenderCommand;
+#include "window.h"
 
 
 
@@ -24,6 +10,7 @@ typedef struct
 // maybe just pass
 void rl_start_frame(Arena* arena);
 
+void rl_setup(w_window* w);
 
 // push a rectangle to the comamnd buffer
 void rl_push_rectangle();

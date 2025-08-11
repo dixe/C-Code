@@ -21,17 +21,11 @@
     <ClCompile Include="window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gdi_renderer.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="render_layer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="arena.c">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="s_string.h">
-      <Filter>Header Files</Filter>
     </ClCompile>
     <ClCompile Include="s_string.c">
       <Filter>Source Files</Filter>
@@ -41,9 +35,6 @@
     <ClInclude Include="window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gdi_renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="render_layer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -51,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="custom_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="s_string.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

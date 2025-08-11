@@ -1,10 +1,9 @@
 #include "s_string.h"
 #include <stdio.h>
 #include "arena.h"
+
 // using strlen to get len and capacity.
 // use this for literals, to s16 conversion
-
-
 s16 s_from_literal(c16* lit_str) {
   s16 s;
   s.data = lit_str;
@@ -13,7 +12,7 @@ s16 s_from_literal(c16* lit_str) {
   return s;
 }
 
-s16 s_empty_raw(c16* buffer, size capacity)
+s16 s_empty_raw(c16* buffer, xsize capacity)
 {
   s16 s;
   s.data = buffer;
@@ -22,7 +21,7 @@ s16 s_empty_raw(c16* buffer, size capacity)
   return s;
 }
 
-s16 s_empty(Arena* arena, size capacity)
+s16 s_empty(Arena* arena, xsize capacity)
 {
   c16* buffer = arena_alloc(arena, c16, 128);
   

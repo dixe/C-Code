@@ -4,16 +4,16 @@
 #include "custom_types.h"
 
 typedef struct {
-  size cap;
-  size offset;
+  xsize cap;
+  xsize offset;
   u8* data;
 } Arena;
 
 
 
-Arena* create_arena(size bytes);
+Arena* create_arena(xsize bytes);
 
-void* alloc(Arena* a, ptrdiff_t size, ptrdiff_t align, ptrdiff_t count, i32 flags);
+void* alloc(Arena* a, ptrdiff_t xsize, ptrdiff_t align, ptrdiff_t count, i32 flags);
 
 void arena_reset(Arena* arena);
 

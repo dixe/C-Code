@@ -33,10 +33,6 @@ COLORREF getCusorColor()
   return color;
 }
 
-static int reduce = 10000;
-
-
-void VmPaint(HWND window_handle, RL_RenderCommand* commands, i32 num_commands);
 void OnQuit() {
   quit = true;
 }
@@ -46,8 +42,10 @@ void DrawCursorColor(Arena* arena);
 i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, i32 nCmdShow) {
 
   // WINDOW SETUP
-  static HWND window_handle;
-  window_handle = W_NewWindow(hInstance, OnQuit, VmPaint);
+  w_window* window_handle;
+  window_handle = W_NewWindow(hInstance);
+
+  rl_setup(window_handle);
 
   Arena* frameArena = create_arena(1024*1024); // 1 mb of ram for frame arena
 
@@ -64,8 +62,6 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
 
     DrawCursorColor(frameArena);
 
-    reduce -= 1;
-
     // for rendering layer
     rl_end_frame();
     arena_reset(frameArena);
@@ -78,7 +74,6 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
 
 
 // could be program logic, maybe getCursor should use platform layer?
-// should use arena to allocate the text
 void DrawCursorColor(Arena* arena) {
   COLORREF color = getCusorColor();
 
@@ -93,66 +88,3 @@ void DrawCursorColor(Arena* arena) {
 
   rl_push_text(arena, s);
 }
-
-
-
-void VmPaint(HWND window_handle, RL_RenderCommand* commands, i32 num_commands ) {
-
-  // should be in gdi renderer or maybe call it?
-  // should run over all render commands and do them
-
-  PAINTSTRUCT ps;
-  HDC hdc = BeginPaint(window_handle, &ps);
-  // Create a memory DC compatible with the screen
-  HDC memDC = CreateCompatibleDC(hdc);
-  RECT clientRect;
-  GetClientRect(window_handle, &clientRect);
-
-  // Create a bitmap compatible with the window DC
-  HBITMAP memBitmap = CreateCompatibleBitmap(hdc, clientRect.right, clientRect.bottom);
-  HBITMAP oldBitmap = (HBITMAP)SelectObject(memDC, memBitmap);
-
-  // Fill background
-  HBRUSH bgBrush = (HBRUSH)(COLOR_WINDOW + 1);
-  FillRect(memDC, &clientRect, bgBrush);
-
-  // Draw text into the memory DC
-  for (i32 i = 0; i < num_commands; i++)
-  {
-    switch (commands[i].commandType)
-    {
-      case RL_RECTANGLE:
-        break;
-      case RL_TEXT:
-        TextOutW(memDC, 0, 0, commands[i].text.data, (i32) commands[i].text.len);
-        break;
-      }
-  }
-
-  // OLD
- /*
-  
-  if (reduce > 0)
-  {
-    // push_text
-    TextOutW(memDC, 0, 0, L"Hello, Windows !", 15);
-  }
-  else
-  {
-    TextOutW(memDC, 0, 0, L"JHello !", 8); // Correct length
-  }
-
-  */
-
-
-  // Blit the memory DC to the screen
-  BitBlt(hdc, 0, 0, clientRect.right, clientRect.bottom, memDC, 0, 0, SRCCOPY);
-
-  // Clean up
-  SelectObject(memDC, oldBitmap);
-  DeleteObject(memBitmap);
-  DeleteDC(memDC);
-
-  EndPaint(window_handle, &ps);
-}
-
