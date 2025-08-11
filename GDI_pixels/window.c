@@ -10,7 +10,7 @@ LRESULT CALLBACK WindowProcessMessage(HWND, UINT, WPARAM, LPARAM);
 
 
 typedef void (*quit_fn) ();
-typedef void (*draw_fn) (RL_RenderCommand* commands, i32 commands_len);
+typedef void (*draw_fn) (RL_RenderCommand* commands, size commands_len);
 
 quit_fn quit_f;
 draw_fn draw_f;
@@ -39,7 +39,7 @@ HWND W_NewWindow(HINSTANCE hInstance, quit_fn qf, draw_fn df) {
 
 
 static RL_RenderCommand* W_commands;
-static i32 W_commands_len;
+static size W_commands_len;
 
 LRESULT CALLBACK WindowProcessMessage(HWND window_handle, u32 message, WPARAM wParam, LPARAM lParam) {
 
@@ -59,7 +59,7 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, u32 message, WPARAM wP
   return 0;
 }
 
-void frame_end(RL_RenderCommand* commands, i32 commands_len)
+void frame_end(RL_RenderCommand* commands, size commands_len)
 {
   W_commands = commands;
   W_commands_len = commands_len;

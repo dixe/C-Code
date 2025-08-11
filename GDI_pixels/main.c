@@ -5,6 +5,8 @@
   #define _UNICODE
 #endif
 
+#define WIN32_LEAN_AND_MEAN
+
 #include <windows.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -49,6 +51,7 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
   Arena* frameArena = create_arena(1024*1024); // 1 mb of ram for frame arena
 
   while (!quit) {
+    rl_start_frame(frameArena);
 
     // maybe for platform/window layer?
     static MSG message = { 0 };
@@ -63,7 +66,7 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
     reduce -= 1;
 
     // for rendering layer
-    frame_end(command, 1);
+    rl_end_frame();
     arena_reset(frameArena);
     // reset framea
   }
@@ -82,7 +85,7 @@ RL_RenderCommand* DrawCursorColor(Arena* arena) {
   i32 g = GetGValue(color);
   i32 b = GetBValue(color);
 
-  s16 s = s_empty(arena, 64);
+  s_string s = s_empty(arena, 64);
   // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
   // but this is ok
   s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);

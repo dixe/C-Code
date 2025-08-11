@@ -17,16 +17,18 @@ Arena* create_arena(size bytes)
 
   a->data = data;
   a->offset = 0;
-  a->size = bytes;
-  memset(a->data, 0xAB, a->size);
+  a->cap = bytes;
+  memset(a->data, 0xAB, a->cap);
   return a;
 }
 
 
 // TODO make macro 
-void* arena_alloc(Arena* arena, size bytes) {
+void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i32 flags)
+{
+  size bytes = objSize * count;
 
-  if (arena->offset + bytes >= arena->size)
+  if (arena->offset + bytes >= arena->cap)
   {
     // out of range
     exit(32);
@@ -40,6 +42,6 @@ void* arena_alloc(Arena* arena, size bytes) {
 
 void arena_reset(Arena* arena)
 {
-  memset(arena->data, 0xAB, arena->size);
+  memset(arena->data, 0xAB, arena->cap);
   arena->offset = 0;
 }

@@ -10,8 +10,8 @@ typedef enum  {
 
 typedef struct 
 {
-  enum RL_RenderCommandType commandType;
-  s16 text;
+  RL_RenderCommandType commandType;
+  s_string text;
   // color
   // position
   // size?
@@ -20,8 +20,17 @@ typedef struct
 
 
 
+// allocate render command buffer.
+// maybe just pass
+void rl_start_frame(Arena* arena);
+
+
 // push a rectangle to the comamnd buffer
 void rl_push_rectangle();
 
 // push text output to command buffer
-RL_RenderCommand* rl_push_text(Arena* arena, s16 text);
+RL_RenderCommand* rl_push_text(Arena* arena, s_string text);
+
+
+
+void rl_end_frame();

@@ -23,7 +23,7 @@ COLORREF getGusorColor()
 
 
 
-i32 main(int argc, TCHAR* argv[])
+int main(int argc, TCHAR* argv[])
 {
 
 

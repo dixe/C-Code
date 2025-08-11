@@ -7,4 +7,4 @@ typedef void (*draw_fn) ();
 
 HWND W_NewWindow(HINSTANCE hInstance, quit_fn qf, draw_fn df);
 
-void frame_end(RL_RenderCommand* commands, i32 commands_len);
+void frame_end(RL_RenderCommand* commands, size commands_len);

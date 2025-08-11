@@ -13,3 +13,8 @@ typedef double    f64;
 typedef uintptr_t uptr;
 typedef ptrdiff_t size;
 typedef size_t    usize;
+
+
+#define sizeof(x)    (ptrdiff_t)sizeof(x)
+#define countof(a)   (sizeof(a) / sizeof(*(a)))
+#define lengthof(s)  (countof(s) - 1)
