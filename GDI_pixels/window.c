@@ -8,12 +8,6 @@ LRESULT CALLBACK WindowProcessMessage(HWND, UINT, WPARAM, LPARAM);
 #define Rand32() rand()
 #endif
 
-
-typedef void (*quit_fn) ();
-typedef void (*draw_fn) (RL_RenderCommand* commands, xsize commands_len);
-
-
-
 static w_window *window;
 
 w_window* W_NewWindow(HINSTANCE hInstance) {
@@ -33,8 +27,7 @@ w_window* W_NewWindow(HINSTANCE hInstance) {
 }
 
 
-static RL_RenderCommand* W_commands;
-static xsize W_commands_len;
+static RL_RenderCommands* W_commands;
 
 LRESULT CALLBACK WindowProcessMessage(HWND window_handle, u32 message, WPARAM wParam, LPARAM lParam) {
 
@@ -45,7 +38,15 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, u32 message, WPARAM wP
   } break;
   case WM_PAINT:
   {
-    window->draw_f(window_handle, W_commands, W_commands_len);
+    if (W_commands != 0)
+    {
+      window->draw_f(window_handle, W_commands);
+    }
+    else {
+      PAINTSTRUCT ps;
+      HDC hdc = BeginPaint(window_handle, &ps);
+      EndPaint(window_handle, &ps);
+    }
   } break;
   default: {
     return DefWindowProc(window_handle, message, wParam, lParam);
@@ -54,10 +55,9 @@ LRESULT CALLBACK WindowProcessMessage(HWND window_handle, u32 message, WPARAM wP
   return 0;
 }
 
-void w_frame_end(RL_RenderCommand* commands, xsize commands_len)
+void w_frame_end(RL_RenderCommands* commands)
 {
   W_commands = commands;
-  W_commands_len = commands_len;
   InvalidateRect(window->handle, NULL, TRUE);
   UpdateWindow(window->handle);
 

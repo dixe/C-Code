@@ -7,54 +7,13 @@
 //
 
 // array of commands
-typedef struct {
-  RL_RenderCommand* commands;
-  xsize len;
-} RenderCommands;
-
-static RenderCommands commands;
 
 
-void rl_setup(w_window* w)
-{
-
-}
-
-void rl_push_rectangle()
-{
-
-}
-
-void rl_start_frame(Arena* arena)
-{
-  // 1024 commands
-  commands.commands = arena_alloc(arena, RL_RenderCommand, 1024);  
-  commands.len = 0;
-}
-
-void rl_end_frame()
-{
-  // call platform layer
-  w_frame_end(commands.commands, commands.len);
-}
-
-// push text output to command buffer
-void rl_push_text(Arena* arena, s16 text)
-{  
-  xsize next = commands.len;
-  RL_RenderCommand* command = &commands.commands[next];
-  commands.len += 1;
-
-  command->commandType = RL_TEXT;
-  command->text = text; 
-
-}
+static RL_RenderCommands commands;
 
 
 
-
-
-void rl_vm_pain(HWND window_handle, RL_RenderCommand* commands, i32 num_commands) {
+void rl_vm_paint(HWND window_handle, RL_RenderCommands* commands) {
 
   // should be in gdi renderer or maybe call it?
   // should run over all render commands and do them
@@ -75,14 +34,15 @@ void rl_vm_pain(HWND window_handle, RL_RenderCommand* commands, i32 num_commands
   FillRect(memDC, &clientRect, bgBrush);
 
   // Draw text into the memory DC
-  for (i32 i = 0; i < num_commands; i++)
+  for (i32 i = 0; i < commands->len; i++)
   {
-    switch (commands[i].commandType)
+    RL_RenderCommand command = commands->commands[i];
+    switch (command.commandType)
     {
     case RL_RECTANGLE:
       break;
     case RL_TEXT:
-      TextOutW(memDC, 0, 0, commands[i].text.data, (i32)commands[i].text.len);
+      TextOutW(memDC, 0, 0, command.text.data, (i32)command.text.len);
       break;
     }
   }
@@ -99,3 +59,39 @@ void rl_vm_pain(HWND window_handle, RL_RenderCommand* commands, i32 num_commands
 }
 
 
+void rl_setup(w_window* window)
+{
+  window->draw_f = rl_vm_paint;
+}
+
+
+
+void rl_push_rectangle()
+{
+
+}
+
+void rl_start_frame(Arena* arena)
+{
+  // 1024 commands
+  commands.commands = arena_alloc(arena, RL_RenderCommand, 1024);  
+  commands.len = 0;
+}
+
+void rl_end_frame()
+{
+  // call platform layer
+  w_frame_end(&commands);
+}
+
+// push text output to command buffer
+void rl_push_text(Arena* arena, s16 text)
+{  
+  xsize next = commands.len;
+  RL_RenderCommand* command = &commands.commands[next];
+  commands.len += 1;
+
+  command->commandType = RL_TEXT;
+  command->text = text; 
+
+}

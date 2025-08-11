@@ -4,8 +4,6 @@
 #include "custom_types.h"
 #include "s_string.h"
 
-typedef void (*quit_fn) ();
-typedef void (*draw_fn) ();
 
 
 typedef enum {
@@ -25,6 +23,14 @@ typedef struct
   // rect?
 } RL_RenderCommand;
 
+typedef struct {
+  RL_RenderCommand* commands;
+  xsize len;
+} RL_RenderCommands;
+
+
+typedef void (*quit_fn) ();
+typedef void (*draw_fn) (HWND, RL_RenderCommands*);
 
 typedef struct {
   HWND handle;
@@ -32,6 +38,8 @@ typedef struct {
   draw_fn draw_f;
 } w_window;
 
+
+
 w_window* W_NewWindow(HINSTANCE hInstance);
 
-void w_frame_end(RL_RenderCommand* commands, xsize commands_len);
+void w_frame_end(RL_RenderCommands* commands);
