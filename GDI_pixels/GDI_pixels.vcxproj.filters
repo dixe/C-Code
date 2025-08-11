@@ -30,10 +30,10 @@
     <ClCompile Include="arena.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="string.h">
+    <ClCompile Include="s_string.h">
       <Filter>Header Files</Filter>
     </ClCompile>
-    <ClCompile Include="string.c">
+    <ClCompile Include="s_string.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

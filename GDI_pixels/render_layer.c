@@ -1,7 +1,7 @@
 #include <windows.h>
 #include "render_layer.h"
 #include "arena.h"
-#include "string.h"
+#include "s_string.h"
 #include "window.h"
 
 //
@@ -35,7 +35,7 @@ void rl_end_frame()
 }
 
 // push text output to command buffer
-RL_RenderCommand* rl_push_text(Arena* arena, s_string text)
+void rl_push_text(Arena* arena, s16 text)
 {  
   size next = commands.len;
   RL_RenderCommand* command = &commands.commands[next];
@@ -44,8 +44,6 @@ RL_RenderCommand* rl_push_text(Arena* arena, s_string text)
   command->commandType = RL_TEXT;
   command->text = text; 
 
-  // why?
-  return command;
 }
 
 

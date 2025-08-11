@@ -16,6 +16,7 @@
 #include "render_layer.h"
 #include "arena.h"
 #include "custom_types.h"
+#include "s_string.h"
 // based on code from https://www.youtube.com/watch?v=q1fMa8Hufmg
 
 
@@ -40,7 +41,7 @@ void OnQuit() {
   quit = true;
 }
 
-RL_RenderCommand* DrawCursorColor(Arena* arena);
+void DrawCursorColor(Arena* arena);
 
 i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pCmdLine, i32 nCmdShow) {
 
@@ -61,7 +62,7 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
     }
 
 
-    RL_RenderCommand* command = DrawCursorColor(frameArena);
+    DrawCursorColor(frameArena);
 
     reduce -= 1;
 
@@ -78,21 +79,19 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
 
 // could be program logic, maybe getCursor should use platform layer?
 // should use arena to allocate the text
-RL_RenderCommand* DrawCursorColor(Arena* arena) {
+void DrawCursorColor(Arena* arena) {
   COLORREF color = getCusorColor();
 
   i32 r = GetRValue(color);
   i32 g = GetGValue(color);
   i32 b = GetBValue(color);
 
-  s_string s = s_empty(arena, 64);
+  s16 s = s_empty(arena, 64);
   // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
   // but this is ok
   s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);
 
-  RL_RenderCommand* res = rl_push_text(arena, s);
-
-  return res;
+  rl_push_text(arena, s);
 }
 
 
