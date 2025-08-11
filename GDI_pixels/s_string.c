@@ -25,7 +25,6 @@ s16 s_empty(Arena* arena, xsize capacity)
 {
   c16* buffer = arena_alloc(arena, c16, 128);
   
-  i32 x = _Alignof(c16);
   s16 s;
   s.data = buffer;
   s.len = 0;
