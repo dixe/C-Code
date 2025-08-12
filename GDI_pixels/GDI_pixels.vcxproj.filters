@@ -15,36 +15,39 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.c">
+    <ClCompile Include="..\Lib\arena.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="window.c">
+    <ClCompile Include="..\Lib\gdi_renderer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="render_layer.c">
+    <ClCompile Include="..\Lib\render_layer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="arena.c">
+    <ClCompile Include="..\Lib\s_string.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="s_string.c">
+    <ClCompile Include="..\Lib\window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="window.h">
+    <ClInclude Include="..\Lib\arena.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="render_layer.h">
+    <ClInclude Include="..\Lib\custom_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="arena.h">
+    <ClInclude Include="..\Lib\gdi_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="custom_types.h">
+    <ClInclude Include="..\Lib\render_layer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="s_string.h">
+    <ClInclude Include="..\Lib\s_string.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Lib\window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -19,18 +19,19 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="arena.c" />
-    <ClCompile Include="main.c" />
-    <ClCompile Include="render_layer.c" />
-    <ClCompile Include="s_string.c" />
-    <ClInclude Include="s_string.h" />
-    <ClCompile Include="window.c" />
+    <ClCompile Include="..\Lib\arena.c" />
+    <ClCompile Include="..\Lib\gdi_renderer.c" />
+    <ClCompile Include="..\Lib\render_layer.c" />
+    <ClCompile Include="..\Lib\s_string.c" />
+    <ClCompile Include="..\Lib\window.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="arena.h" />
-    <ClInclude Include="custom_types.h" />
-    <ClInclude Include="render_layer.h" />
-    <ClInclude Include="window.h" />
+    <ClInclude Include="..\Lib\arena.h" />
+    <ClInclude Include="..\Lib\custom_types.h" />
+    <ClInclude Include="..\Lib\gdi_renderer.h" />
+    <ClInclude Include="..\Lib\render_layer.h" />
+    <ClInclude Include="..\Lib\s_string.h" />
+    <ClInclude Include="..\Lib\window.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
