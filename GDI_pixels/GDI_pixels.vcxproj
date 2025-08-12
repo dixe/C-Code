@@ -24,6 +24,7 @@
     <ClCompile Include="..\Lib\render_layer.c" />
     <ClCompile Include="..\Lib\s_string.c" />
     <ClCompile Include="..\Lib\window.c" />
+    <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h" />
@@ -134,6 +135,7 @@
       <TreatWarningAsError>true</TreatWarningAsError>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
       <LanguageStandard>Default</LanguageStandard>
+      <AdditionalIncludeDirectories>E:\repos\C-Code\Lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
