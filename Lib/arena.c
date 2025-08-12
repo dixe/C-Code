@@ -1,6 +1,6 @@
 #include "arena.h"
 
-Arena* create_arena(isize bytes)
+Arena* arena_create(isize bytes)
 {
   Arena* a;
   a = (Arena*)malloc(sizeof(a));
@@ -43,6 +43,8 @@ void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i
 
 void arena_reset(Arena* arena)
 {
+#ifdef _DEBUG
   memset(arena->data, 0xAB, arena->cap);
+#endif
   arena->offset = 0;
 }

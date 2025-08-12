@@ -45,7 +45,7 @@ void DrawCursorColor(Arena* arena) {
   i32 g = GetGValue(color);
   i32 b = GetBValue(color);
 
-  s16 s = s_empty(arena, 64);
+  s16 s = s16_empty(arena, 64);
   // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
   // but this is ok
   s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);
@@ -64,7 +64,7 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
 
   rl_setup(window_handle);
 
-  Arena* frameArena = create_arena(1024*1024); // 1 mb of ram for frame arena
+  Arena* frameArena = arena_create(1024*1024); // 1 mb of ram for frame arena
 
   while (!quit) {
     rl_start_frame(frameArena);

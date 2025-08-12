@@ -11,8 +11,42 @@ typedef struct {
 } s16;
 
 
-s16 s_from_literal(c16* lit_str);
+s16 s16_from_literal(c16* lit_str);
 
-s16 s_empty_raw(c16* buffer, isize capacity);
+s16 s16_empty_raw(c16* buffer, isize capacity);
 
-s16 s_empty(Arena* arena, isize capacity);
+s16 s16_empty(Arena* arena, isize capacity);
+
+typedef struct {
+  u8* data;
+  isize len;
+  isize capacity;
+} s8;
+
+
+s8 s8_from_literal(u8* lit_str);
+
+s8 s8_empty_raw(u8* buffer, isize capacity);
+
+s8 s8_empty(Arena* arena, isize capacity);
+
+void s8_print(s8);
+
+/// <summary>
+/// Find char (chr) in s -1 on not found
+/// </summary>
+/// <param name="s"></param>
+/// <param name="chr"></param>
+/// <returns></returns>
+isize s8_find_char(s8 s, u8 chr);
+
+/// <summary>
+/// Substring with start and end pos
+/// </summary>
+/// <param name="a"></param>
+/// <param name="s"></param>
+/// <param name="start"></param>
+/// <param name="end"></param>
+/// <returns></returns>
+s8 s8_substring(Arena* a, s8 s, isize start, isize end);
+
