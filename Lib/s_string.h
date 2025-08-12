@@ -30,7 +30,9 @@ s8 s8_empty_raw(u8* buffer, isize capacity);
 
 s8 s8_empty(Arena* arena, isize capacity);
 
-void s8_print(s8);
+void s8_print(s8 s);
+
+void s8_println(s8 s);
 
 /// <summary>
 /// Find char (chr) in s -1 on not found
@@ -41,7 +43,7 @@ void s8_print(s8);
 isize s8_find_char(s8 s, u8 chr);
 
 /// <summary>
-/// Substring with start and end pos
+/// Substring with start and end pos allocate the data for return string in the arena a
 /// </summary>
 /// <param name="a"></param>
 /// <param name="s"></param>

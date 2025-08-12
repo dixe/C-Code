@@ -27,7 +27,8 @@ int main()
   isize line_size = 32;
   Arena* line_arena = arena_create(line_size);
 
-  while (input_string.len != 0)
+  // parse lines, loading new from file as we go
+  while (input_string.len != 0 || line ended)
   {
 
 
@@ -37,15 +38,21 @@ int main()
 
     isize semicolon_pos = s8_find_char(input_string, ';');
 
+
     isize line_end_pos = s8_find_char(input_string, '\n');
 
     s8 name = s8_substring(line_arena, input_string, 0, semicolon_pos);
     s8 temp = s8_substring(line_arena, input_string, semicolon_pos + 1, line_end_pos);
 
-    arena_reset(line_arena);
+
+    s8_print(name);
+    s8_print(s8_from_literal(" "));
+    s8_println(temp);
 
 
     input_string.len = fread(input_string.data, sizeof(u8), size, fptr);
+
+    arena_reset(line_arena);
   }
 
 

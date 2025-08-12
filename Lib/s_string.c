@@ -64,6 +64,13 @@ s8 s8_empty(Arena* arena, isize capacity)
   return s;
 }
 
+void s8_println(s8 s)
+{
+  s8_print(s);
+  putchar('\n');
+}
+
+
 void s8_print(s8 s) 
 {
 
