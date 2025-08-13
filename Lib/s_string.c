@@ -82,8 +82,8 @@ void s8_print(s8 s)
 }
 
 
-isize s8_find_char(s8 s, u8 chr) {
-  for (isize i = 0; i < s.len; i++)
+isize s8_find_char(isize start_index, s8 s, u8 chr) {
+  for (isize i = start_index; i < s.len; i++)
   {
     if (chr == s.data[i])
     {
@@ -99,7 +99,7 @@ s8 s8_substring(Arena* a, s8 s, isize start, isize end) {
   isize len = end - start ;
   
   // check out of ranges
-  if (len <= 0 || start >= s.len  || end >= s.len)
+  if (len <= 0 || start >= s.len  || end > s.len)
   {
     return ret;
   }
@@ -117,4 +117,17 @@ s8 s8_substring(Arena* a, s8 s, isize start, isize end) {
 
   return ret;
 
+}
+
+
+s8 s8_concat(Arena* a, s8 s1, s8 s2)
+{
+  isize len = s1.len + s2.len;
+  s8 ret = s8_empty(a, len);
+
+  memcpy(ret.data, s1.data, s1.len);
+  memcpy(ret.data + s1.len, s2.data, s2.len);
+
+  ret.len = len;
+  return ret;
 }

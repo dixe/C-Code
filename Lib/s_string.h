@@ -40,7 +40,7 @@ void s8_println(s8 s);
 /// <param name="s"></param>
 /// <param name="chr"></param>
 /// <returns></returns>
-isize s8_find_char(s8 s, u8 chr);
+isize s8_find_char(isize index, s8 s, u8 chr);
 
 /// <summary>
 /// Substring with start and end pos allocate the data for return string in the arena a
@@ -52,3 +52,13 @@ isize s8_find_char(s8 s, u8 chr);
 /// <returns></returns>
 s8 s8_substring(Arena* a, s8 s, isize start, isize end);
 
+
+/// <summary>
+/// Concat s1 and s2 into a new string allocated in arena
+/// s1 and s2 are not touched
+/// </summary>
+/// <param name="a"></param>
+/// <param name="s1"></param>
+/// <param name="s2"></param>
+/// <returns></returns>
+s8 s8_concat(Arena* a, s8 s1, s8 s2);
