@@ -18,7 +18,7 @@ int main()
   FILE* fptr;
 
   // 1 mb chuncks for data
-  isize chunk_size = 16;
+  isize chunk_size = 128;
   Arena* input_data = arena_create(chunk_size);
 
   s8 input_string = s8_empty(input_data, chunk_size);
@@ -35,8 +35,9 @@ int main()
   Arena* line_arena = arena_create(line_size);
 
   isize index = 0;
+
   // parse lines, loading new from file as we go
-  while (input_string.len != 0 )
+  while (index < input_string.len )
   {
     // parse data until ;
     // split on ; and get array of #; + 1
@@ -60,11 +61,10 @@ int main()
     {
       LoadMore load_data = load_more(line_arena, input_string, index, fptr, chunk_size, '\n');
       temp = load_data.parsed_s;
-      index = load_data.index;
-      if (index == -1)
+      index = load_data.index + 1;
+      if (load_data.index == -1)
       {
         // we are done
-
         arena_reset(line_arena);
         return 0;
       }
@@ -81,17 +81,6 @@ int main()
     arena_reset(line_arena);
   }
 
-
-  //input_string.len = real_size;
-
-  
-
-
-  // parse each row
-
-  // use hashset to store data of min, max sum and count
-
-  // loop over hashset and get abg, min and max
 
 }
 
