@@ -31,8 +31,8 @@ s8 iter_next(FileIter* iter, u8 chr) {
   isize chr_pos = s8_find_char(iter->index, iter->input_string, chr);
 
   // either we did not load enough, or file is read to end;
-  // should just alloca full arena cap as empty string
-  s8 ret = { 0 };
+  // should just alloca full arena cap as empty string1
+  s8 ret = s8_empty(iter->line_arena, iter->line_arena->cap);
   if (iter->input_string.len == 0)
   {
     iter->input_string.len = fread(iter->input_string.data, sizeof(u8), iter->input_string.capacity, iter->fptr);
@@ -77,7 +77,7 @@ isize init_iter(FileIter* iter, char * str, s8 buffer,  Arena* line_arena) {
 
 int main()
 {
-  isize chunk_size = 56;
+  isize chunk_size = 256;
   Arena* input_data = arena_create(chunk_size);
 
   FileIter* iter = arena_alloc(input_data, FileIter);

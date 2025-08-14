@@ -45,9 +45,21 @@ void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i
 
 void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_size)
 {
+  isize align = _Alignof(u8);
+  isize padding = -(isize)(arena->data + arena->offset) & (align - 1);
+
   isize old_end = ptr + current_size;
   isize arena_end = arena->data + arena->offset;
-  
+
+
+  isize available = arena->cap - arena->offset - padding - new_size;
+  if (available < 0)
+  {
+    // oom
+    exit(32);
+    return NULL;
+  }
+
   if (old_end == arena_end )
   {
     arena->offset += new_size - current_size;
