@@ -31,6 +31,7 @@ s8 iter_next(FileIter* iter, u8 chr) {
   isize chr_pos = s8_find_char(iter->index, iter->input_string, chr);
 
   // either we did not load enough, or file is read to end;
+  // should just alloca full arena cap as empty string
   s8 ret = { 0 };
   if (iter->input_string.len == 0)
   {

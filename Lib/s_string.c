@@ -160,7 +160,7 @@ isize s8_grow_by(Arena* a, s8* s, isize additionalBytes)
   }
   
   // copy old data
-  memcpy(s->data, new_ptr, s->len);
+  memcpy(new_ptr, s->data, s->len);
   s->data = new_ptr; 
   
   return 0;
