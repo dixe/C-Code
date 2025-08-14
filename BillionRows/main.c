@@ -18,13 +18,14 @@ int main()
   Arena* line_arena = arena_create(line_size);
   
 
-  file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer, line_arena);
+  file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer);
 
-  s8 line = file_iter_next(iter, '\n');
+  s8 line = file_iter_next(line_arena, iter, '\n');
   while (line.len > 0) {
     // use whole line
     s8_println(line);
-    line = file_iter_next(iter, '\n');
+    arena_reset(line_arena);
+    line = file_iter_next(line_arena, iter, '\n');
   }
 
   file_iter_close(iter);
@@ -35,23 +36,23 @@ int main()
   iter = arena_alloc(input_data, FileIter);
   buffer = s8_empty(input_data, input_data->cap - input_data->offset);
 
-  file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer, line_arena);
+  file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer);
 
   b32 run = 1;
   while (run)
   {
-    s8 name = file_iter_next(iter, ';');
-    if (name.len == 0)
-    {
-      break;
-    }
+    s8 name = file_iter_next(line_arena, iter, ';');
+    s8 temp = file_iter_next(line_arena, iter, '\n');
+
     s8_print(name);
     s8_print(s8_from_literal(" "));
-    s8 temp = file_iter_next(iter, '\n');
-    if (temp.len == 0)
+    s8_println(temp);
+
+    if (name.len == 0 || temp.len == 0)
     {
       break;
     }
 
+    arena_reset(line_arena);
   }
 }

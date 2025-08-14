@@ -1,17 +1,12 @@
 #include "custom_types.h"
 #include "s_string.h"
 #include <stdio.h>
+#include "file.h"
 
-typedef struct {
-  s8 input_string;
-  FILE* fptr;
-  Arena* line_arena;
-  isize index;
-} FileIter;
 
-s8 file_iter_next(FileIter* iter, u8 chr) {
-  arena_reset(iter->line_arena);
-  s8 ret = s8_empty(iter->line_arena, iter->line_arena->cap);
+s8 file_iter_next(Arena* a, FileIter* iter, u8 chr) {
+  // Mabe allocate 8/16/32/64 bytes, depending on the arena cap
+  s8 ret = { 0 };
 
   if (iter->fptr == 0)
   {
@@ -38,7 +33,7 @@ s8 file_iter_next(FileIter* iter, u8 chr) {
   while (chr_pos == -1)
   {
     // append substring of inputstring to ret
-    s8_append(iter->line_arena, &ret, iter->input_string, iter->index, iter->input_string.len);
+    s8_append(a, &ret, iter->input_string, iter->index, iter->input_string.len);
 
     iter->input_string.len = fread(iter->input_string.data, sizeof(u8), iter->input_string.capacity, iter->fptr);
     iter->index = 0;
@@ -53,20 +48,18 @@ s8 file_iter_next(FileIter* iter, u8 chr) {
   }
 
   // copy 
-
-  s8_append(iter->line_arena, &ret, iter->input_string, iter->index, chr_pos);
+  s8_append(a, &ret, iter->input_string, iter->index, chr_pos);
   iter->index = chr_pos + 1;
   return ret;
 }
 
 // could just be and empty input str
-isize file_init_iter(FileIter* iter, char* str, s8 buffer, Arena* line_arena) {
+isize file_init_iter(FileIter* iter, char* str, s8 buffer) {
 
   i32 err = fopen_s(&iter->fptr, str, "r");
   // remaining space for input string
   iter->input_string = buffer;
   iter->index = 0;
-  iter->line_arena = line_arena;
   return 0;
 }
 
