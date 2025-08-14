@@ -142,11 +142,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Lib\arena.c" />
+    <ClCompile Include="..\Lib\file.c" />
     <ClCompile Include="..\Lib\s_string.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h" />
+    <ClInclude Include="..\Lib\file.h" />
     <ClInclude Include="..\Lib\s_string.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Lib\arena.c" />
+    <ClCompile Include="..\Lib\file.c" />
     <ClCompile Include="..\Lib\gdi_renderer.c" />
     <ClCompile Include="..\Lib\render_layer.c" />
     <ClCompile Include="..\Lib\s_string.c" />
@@ -29,6 +30,7 @@
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h" />
     <ClInclude Include="..\Lib\custom_types.h" />
+    <ClInclude Include="..\Lib\file.h" />
     <ClInclude Include="..\Lib\gdi_renderer.h" />
     <ClInclude Include="..\Lib\render_layer.h" />
     <ClInclude Include="..\Lib\s_string.h" />
