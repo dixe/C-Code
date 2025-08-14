@@ -17,6 +17,15 @@ void* alloc(Arena* a, ptrdiff_t isize, ptrdiff_t align, ptrdiff_t count, i32 fla
 
 void arena_reset(Arena* arena);
 
+/// <summary>
+/// Try to reallocate a pointer with current_size, to a new pointer with new_size
+/// If ptr was last pointer allocated, the allocation are extended, otherwise reallocated in arena, old pointer still valid. Not release.
+/// </summary>
+/// <param name="arena"></param>
+/// <param name="ptr"></param>
+/// <param name="current_size"></param>
+/// <param name="new_size"></param>
+/// <returns></returns>
 void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_size);
 
 #define arena_alloc(...)            arena_allocx(__VA_ARGS__,arena_alloc3,arena_alloc2)(__VA_ARGS__)
