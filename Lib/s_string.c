@@ -2,9 +2,7 @@
 #include <stdio.h>
 #include "arena.h"
 
-// using strlen to get len and capacity.
-// use this for literals, to s16 conversion
-s16 s16_from_literal(c16* lit_str) {
+s16 s16_from_c_str(c16* lit_str) {
   s16 s;
   s.data = lit_str;
   s.len = wcslen(lit_str);
@@ -33,10 +31,7 @@ s16 s16_empty(Arena* arena, isize capacity)
 }
 
 
-
-// using strlen to get len and capacity.
-// use this for literals, to s16 conversion
-s8 s8_from_literal(u8* lit_str) {
+s8 s8_from_c_str(u8* lit_str) {  
   s8 s;
   s.data = lit_str;
   s.len = strlen(lit_str);
