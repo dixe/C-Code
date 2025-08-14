@@ -62,3 +62,17 @@ s8 s8_substring(Arena* a, s8 s, isize start, isize end);
 /// <param name="s2"></param>
 /// <returns></returns>
 s8 s8_concat(Arena* a, s8 s1, s8 s2);
+
+
+
+void s8_append(Arena* a, s8* dest, s8 src, isize src_start, isize src_end);
+
+
+/// <summary>
+/// Grows the string s by additionalBytes in the give arena
+/// </summary>
+/// <param name="a"></param>
+/// <param name="s"></param>
+/// <param name="additionalBytes"></param>
+/// <returns></returns>
+isize s8_grow_by(Arena*, s8* s, isize additionalBytes);

@@ -17,6 +17,7 @@ void* alloc(Arena* a, ptrdiff_t isize, ptrdiff_t align, ptrdiff_t count, i32 fla
 
 void arena_reset(Arena* arena);
 
+void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_size);
 
 #define arena_alloc(...)            arena_allocx(__VA_ARGS__,arena_alloc3,arena_alloc2)(__VA_ARGS__)
 #define arena_allocx(a,b,c,d,...) d

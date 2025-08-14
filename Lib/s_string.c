@@ -116,7 +116,6 @@ s8 s8_substring(Arena* a, s8 s, isize start, isize end) {
   ret.len = len;
 
   return ret;
-
 }
 
 
@@ -130,4 +129,39 @@ s8 s8_concat(Arena* a, s8 s1, s8 s2)
 
   ret.len = len;
   return ret;
+}
+
+
+
+void s8_append(Arena* a, s8* dest, s8 src, isize src_start, isize src_end)
+{
+  // check if we have capacity, otherwise copy grow dest
+  isize space = dest->capacity - dest->len;
+  isize src_len = src_end - src_start;
+  if (space < src_end - src_start)
+  {
+
+    isize additional = src_end - src_start - space;
+    isize err = s8_grow_by(a, dest, additional);
+  }
+  memcpy(dest->data + dest->len, src.data + src_start, src_len);
+  dest->len += src_len;
+}
+
+isize s8_grow_by(Arena* a, s8* s, isize additionalBytes)
+{
+  // fix this so we copy if new alloc
+  u8* new_ptr = (u8*)arena_realloc(a, s->data, s->capacity, additionalBytes);
+  s->capacity = s->capacity + additionalBytes;
+
+  if (new_ptr == s->data)
+  {
+    return 0;
+  }
+  
+  // copy old data
+  memcpy(s->data, new_ptr, s->len);
+  s->data = new_ptr; 
+  
+  return 0;
 }

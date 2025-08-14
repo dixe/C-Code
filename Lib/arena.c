@@ -28,8 +28,8 @@ void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i
   isize bytes = objSize * count;
 
   isize padding = -(isize)(arena->data + arena->offset) & (align - 1);
-  isize available = arena->cap - arena->offset - padding;
-  if (available < 0)
+  isize available = arena->cap - arena->offset - padding - bytes;
+  if (available < 0 )
   {
     // oom
     exit(32);
@@ -39,6 +39,23 @@ void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i
   void* p = arena->data + arena->offset + padding;
   arena->offset += bytes + padding;;
   return p;
+}
+
+
+
+void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_size)
+{
+  isize old_end = ptr + current_size;
+  isize arena_end = arena->data + arena->offset;
+  
+  if (old_end == arena_end )
+  {
+    arena->offset += new_size - current_size;
+    return ptr;
+  }
+
+  return alloc(arena, sizeof(u8), _Alignof(u8), new_size - current_size, 0);
+  
 }
 
 void arena_reset(Arena* arena)
