@@ -35,7 +35,7 @@ s8 s8_empty_raw(u8* buffer, isize capacity);
 
 s8 s8_empty(Arena* arena, isize capacity);
 
-void s8_print(s8 s);
+u64 s8_print(s8 s);
 
 void s8_println(s8 s);
 

@@ -1,5 +1,4 @@
 #include "s_string.h"
-#include <stdio.h>
 #include "arena.h"
 
 s16 s16_from_c_str(c16* lit_str) {
@@ -62,17 +61,17 @@ s8 s8_empty(Arena* arena, isize capacity)
 void s8_println(s8 s)
 {
   s8_print(s);
-  putchar('\n');
+  s8_print(s8_from_literal("\n"));
 }
 
 
-void s8_print(s8 s) 
+u64 s8_print(s8 s) 
 {
+  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+  u64 written = 0;
+  int succ = WriteFile(hOut, s.data, s.len, &written, 0);
 
-  for (int i = 0; i < s.len; i++)
-  {
-    putchar(s.data[i]);
-  }
+  return written;
 
 }
 
