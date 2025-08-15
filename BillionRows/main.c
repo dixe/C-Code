@@ -8,22 +8,6 @@
 int main()
 {
 
-  SetConsoleOutputCP(CP_UTF8);
-  Arena arena_small = arena_create(8);
-
-  s8 sm = s8_from_literal("12");
-  s8 s = s8_empty(&arena_small, 3);
-
-  s8_append(&arena_small, &s, sm, 0, sm.len);
-
-  s8 l = s8_from_literal("123456789035mladwdaDæd");
-  s8_append(&arena_small, &sm, l, 0, l.len);
-  s8_append(&arena_small, &sm, l, 0, l.len);
-  s8_append(&arena_small, &sm, l, 0, l.len);
-  s8_append(&arena_small, &sm, l, 0, l.len);
-
-  s8_println(l);
-
   isize chunk_size = 256;
   Arena input_data = arena_create(chunk_size);
 

@@ -159,3 +159,72 @@ isize s8_grow_by(Arena* a, s8* s, isize additionalBytes)
   
   return 0;
 }
+
+
+b32 s8_try_parse_int(s8 s, i64* output)
+{
+  // TODO skip whitespace
+  *output = 0;
+  for (isize i = 0; i < s.len; i++)
+  {
+    *output *= 10;
+    if (s.data[i] < 48 || s.data[i] >57)
+    {
+      return 0;
+    }
+    *output += s.data[i] - 48;
+  }
+  return 1;
+}
+
+
+b32 s8_try_parse_f64(s8 s, f64* output)
+{
+  isize dot_pos = s8_find_char(0, s, '.');
+  b32 parsed;
+  i64 as_int;
+  if (dot_pos == -1 || dot_pos + 1 == s.len)
+  {
+    // no dot or last dot
+    if (dot_pos + 1 == s.len)
+    {
+      s.len -= 1; // s passed by value, so changes are local
+    }
+    parsed = s8_try_parse_int(s, &as_int);
+    *output = (f64)as_int;
+    return parsed;
+  }
+
+  // dot found
+  s8 int_part_s = { 0 };
+  int_part_s.data = s.data;
+  int_part_s.len = dot_pos; 
+  parsed = s8_try_parse_int(int_part_s, &as_int);
+  if (parsed != 1)
+  {
+    return 1;
+  }
+
+  s8 frac_part_s = { 0 };
+  i64 as_int2;
+  frac_part_s.data = s.data + dot_pos + 1;
+  frac_part_s.len = s.len - dot_pos -1;
+  parsed = s8_try_parse_int(frac_part_s, &as_int2);
+  
+  if (parsed != 1)
+  {
+    return 1;
+  }
+  
+  f64 div = 1;
+  // pow
+  for (isize i = 0; i < frac_part_s.len; i++)
+  {
+    div *= 10;
+  }
+  *output = as_int2 * 1.0 / div;
+  *output += (f64)as_int;
+
+  return parsed;
+
+}

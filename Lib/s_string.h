@@ -89,3 +89,21 @@ void s8_append(Arena* a, s8* dest, s8 src, isize src_start, isize src_end);
 /// <param name="additionalBytes"></param>
 /// <returns></returns>
 isize s8_grow_by(Arena*, s8* s, isize additionalBytes);
+
+/// <summary>
+/// Try to parse s as i64. Parses empty string as 0
+/// </summary>
+/// <param name="s"></param>
+/// <param name="output"></param>
+/// <returns></returns>
+b32 s8_try_parse_int(s8 s, i64* output);
+
+/// <summary>
+/// Try to s as a f64. Parsed int before and after '.' seperatly 
+/// then combining them to create the result
+/// Supports 'xx' 'xx.' 'xxx.xx' '.xx'
+/// </summary>
+/// <param name="s"></param>
+/// <param name="output"></param>
+/// <returns></returns>
+b32 s8_try_parse_f64(s8 s, f64* output);

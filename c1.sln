@@ -9,6 +9,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{17D8C85E-703
 	ProjectSection(SolutionItems) = preProject
 		Lib\arena.c = Lib\arena.c
 		Lib\arena.h = Lib\arena.h
+		Lib\assert.c = Lib\assert.c
+		Lib\assert.h = Lib\assert.h
 		Lib\custom_types.h = Lib\custom_types.h
 		Lib\file.c = Lib\file.c
 		Lib\file.h = Lib\file.h
@@ -23,6 +25,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{17D8C85E-703
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BillionRows", "BillionRows\BillionRows.vcxproj", "{03661860-167E-4C1F-BDF4-5B36A1E96284}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LibTesting", "LibTesting\LibTesting.vcxproj", "{A984BB59-1001-4937-98FE-AF88D54482CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +52,14 @@ Global
 		{03661860-167E-4C1F-BDF4-5B36A1E96284}.Release|x64.Build.0 = Release|x64
 		{03661860-167E-4C1F-BDF4-5B36A1E96284}.Release|x86.ActiveCfg = Release|Win32
 		{03661860-167E-4C1F-BDF4-5B36A1E96284}.Release|x86.Build.0 = Release|Win32
+		{A984BB59-1001-4937-98FE-AF88D54482CE}.Debug|x64.ActiveCfg = Debug|x64
+		{A984BB59-1001-4937-98FE-AF88D54482CE}.Debug|x64.Build.0 = Debug|x64
+		{A984BB59-1001-4937-98FE-AF88D54482CE}.Debug|x86.ActiveCfg = Debug|Win32
+		{A984BB59-1001-4937-98FE-AF88D54482CE}.Debug|x86.Build.0 = Debug|Win32
+		{A984BB59-1001-4937-98FE-AF88D54482CE}.Release|x64.ActiveCfg = Release|x64
+		{A984BB59-1001-4937-98FE-AF88D54482CE}.Release|x64.Build.0 = Release|x64
+		{A984BB59-1001-4937-98FE-AF88D54482CE}.Release|x86.ActiveCfg = Release|Win32
+		{A984BB59-1001-4937-98FE-AF88D54482CE}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

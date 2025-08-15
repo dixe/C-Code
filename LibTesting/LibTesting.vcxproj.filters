@@ -15,16 +15,16 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Lib\s_string.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Lib\arena.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Lib\file.c">
+    <ClCompile Include="main.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Lib\assert.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -35,7 +35,10 @@
     <ClInclude Include="..\Lib\arena.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Lib\file.h">
+    <ClInclude Include="..\Lib\custom_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Lib\assert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
