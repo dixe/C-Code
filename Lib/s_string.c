@@ -146,7 +146,7 @@ void s8_append(Arena* a, s8* dest, s8 src, isize src_start, isize src_end)
 isize s8_grow_by(Arena* a, s8* s, isize additionalBytes)
 {
   // fix this so we copy if new alloc
-  u8* new_ptr = (u8*)arena_realloc(a, s->data, s->capacity, additionalBytes);
+  u8* new_ptr = (u8*)arena_realloc(a, s->data, s->capacity, s->capacity + additionalBytes );
   s->capacity = s->capacity + additionalBytes;
 
   if (new_ptr == s->data)

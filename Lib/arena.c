@@ -1,24 +1,31 @@
 #include "arena.h"
 
-Arena* arena_create(isize bytes)
+#ifndef ARENA_RESERVE_SIZE
+#define ARENA_RESERVE_SIZE  1 << 10
+#endif 
+
+
+Arena arena_create(isize bytes)
 {
-  Arena* a;
-  a = (Arena*)malloc(sizeof(a));
-  if (a == NULL) {
-    exit(29);
-    return NULL;
-  }
-  char* data = malloc(bytes);
+  Arena a = { 0 };
+
+  SIZE_T reserve = ARENA_RESERVE_SIZE ;
+  // reserve large continious space
+  void* reserved = VirtualAlloc(NULL, reserve, MEM_RESERVE, PAGE_READWRITE);
+
+  // commit required bytes
+  u8* data = (u8*)VirtualAlloc(reserved, bytes, MEM_COMMIT, PAGE_READWRITE);
+  
   if (data == NULL)
   {    
     exit(30);  
-    return NULL;
+    return a;
   }
 
-  a->data = data;
-  a->offset = 0;
-  a->cap = bytes;
-  memset(a->data, 0xAB, a->cap);
+  a.data = data;
+  a.offset = 0;
+  a.cap = bytes;
+  memset(a.data, 0xAB, a.cap);
   return a;
 }
 
@@ -31,9 +38,17 @@ void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i
   isize available = arena->cap - arena->offset - padding - bytes;
   if (available < 0 )
   {
-    // oom
-    exit(32);
-    return NULL;
+    // commit more from reserved space. Assume oom is fatal
+    u8* new_pointer = (u8*)VirtualAlloc(arena->data + arena->offset, bytes, MEM_COMMIT, PAGE_READWRITE);
+    arena->cap = bytes;
+
+    memset(arena->data + arena->offset, 0xAC, bytes);
+    if (new_pointer == NULL)
+    {
+      // oom
+      exit(32);
+      return NULL;
+    }
   }
 
   void* p = arena->data + arena->offset + padding;
@@ -51,22 +66,30 @@ void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_siz
   isize old_end = (isize)ptr + current_size;
   isize arena_end = (isize)arena->data + arena->offset;
 
-
+  isize required = new_size + padding;
   isize available = arena->cap - arena->offset - padding - new_size;
   if (available < 0)
   {
     // oom
-    exit(32);
-    return NULL;
+    u8* new_pointer = (u8*)VirtualAlloc(arena->data + arena->offset, required, MEM_COMMIT, PAGE_READWRITE);
+    arena->cap = arena->cap + required;
+
+    memset(arena->data + arena->offset, 0xAD, required);
+    if (new_pointer == NULL)
+    {
+      // oom
+      exit(32);
+      return NULL;
+    }
   }
 
   if (old_end == arena_end )
   {
-    arena->offset += new_size - current_size;
+    arena->offset += required - current_size;
     return ptr;
   }
 
-  return alloc(arena, sizeof(u8), _Alignof(u8), new_size - current_size, 0);
+  return alloc(arena, sizeof(u8), _Alignof(u8), required, 0);
   
 }
 

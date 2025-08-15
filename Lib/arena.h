@@ -11,7 +11,7 @@ typedef struct {
 
 
 
-Arena* arena_create(isize bytes);
+Arena arena_create(isize bytes);
 
 void* alloc(Arena* a, ptrdiff_t isize, ptrdiff_t align, ptrdiff_t count, i32 flags);
 

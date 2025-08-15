@@ -61,6 +61,7 @@ s8 s8_substring(Arena* a, s8 s, isize start, isize end);
 /// <summary>
 /// Concat s1 and s2 into a new string allocated in arena
 /// s1 and s2 are not touched
+/// Use append to modify s1
 /// </summary>
 /// <param name="a"></param>
 /// <param name="s1"></param>
