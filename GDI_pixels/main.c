@@ -64,10 +64,10 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
 
   rl_setup(window_handle);
 
-  Arena* frameArena = arena_create(1024*1024); // 1 mb of ram for frame arena
+  Arena frameArena = arena_create(1024*1024); // 1 mb of ram for frame arena
 
   while (!quit) {
-    rl_start_frame(frameArena);
+    rl_start_frame(&frameArena);
 
     // maybe for platform/window layer?
     static MSG message = { 0 };
@@ -77,11 +77,11 @@ i32 _stdcall WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR p
     }
 
 
-    DrawCursorColor(frameArena);
+    DrawCursorColor(&frameArena);
 
     // for rendering layer
     rl_end_frame();
-    arena_reset(frameArena);
+    arena_reset(&frameArena);
     // reset framea
   }
 

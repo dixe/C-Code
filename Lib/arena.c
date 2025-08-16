@@ -1,7 +1,7 @@
 #include "arena.h"
 
 #ifndef ARENA_RESERVE_SIZE
-#define ARENA_RESERVE_SIZE  1 << 10
+#define ARENA_RESERVE_SIZE  ((i64)1) << 40
 #endif 
 
 

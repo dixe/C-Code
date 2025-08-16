@@ -4,6 +4,7 @@
 #include "custom_types.h"
 #include "arena.h"
 #include "file.h"
+#include "hashmap.h"
 
 int main()
 {
@@ -18,6 +19,7 @@ int main()
   isize line_size = 256;
   Arena line_arena = arena_create(line_size);
   
+  Arena perm = arena_create(32);
 
   file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer);
 
@@ -40,19 +42,27 @@ int main()
   file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer);
 
   b32 run = 1;
+  hashmap *map = { 0 };
+
   while (run)
   {
     s8 name = file_iter_next(&line_arena, iter, ';');
-    s8 temp = file_iter_next(&line_arena, iter, '\n');
-
-    s8_print(name);
-    s8_print(s8_from_literal(" "));
-    s8_println(temp);
-
-    if (name.len == 0 || temp.len == 0)
+    s8 temp_s = file_iter_next(&line_arena, iter, '\n');
+    if (name.len == 0 || temp_s.len == 0)
     {
       break;
     }
+
+    f64 temp;
+    s8_try_parse_f64(temp_s, &temp);
+    f64* val_ptr = upsert(&map, name, &perm);
+    
+    *val_ptr = temp;
+    s8_print(name);
+    s8_print(s8_from_literal(" "));
+    s8_println(temp_s);
+
+   
 
     arena_reset(&line_arena);
   }

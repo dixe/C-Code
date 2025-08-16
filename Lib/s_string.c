@@ -69,10 +69,9 @@ u64 s8_print(s8 s)
 {
   HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
   u64 written = 0;
-  int succ = WriteFile(hOut, s.data, s.len, &written, 0);
+  int succ = WriteFile(hOut, s.data, (DWORD)s.len, (LPDWORD)&written, 0);
 
   return written;
-
 }
 
 
@@ -125,7 +124,15 @@ s8 s8_concat(Arena* a, s8 s1, s8 s2)
   return ret;
 }
 
-
+b32 s8_equals(s8 s1, s8 s2)
+{
+  if (s1.len != s2.len)
+  {
+    return 0;
+  }
+  i32 cmp = memcmp(s1.data, s2.data, s1.len);
+  return cmp == 0;
+}
 
 void s8_append(Arena* a, s8* dest, s8 src, isize src_start, isize src_end)
 {

@@ -70,6 +70,9 @@ s8 s8_substring(Arena* a, s8 s, isize start, isize end);
 s8 s8_concat(Arena* a, s8 s1, s8 s2);
 
 
+b32 s8_equals(s8 s1, s8 s2);
+
+
 /// <summary>
 /// Appends src[src_start;src_end] to dest. If dest has capacity, resuse memory, otherwise realloc in Arena a
 /// </summary>
