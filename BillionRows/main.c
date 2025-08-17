@@ -6,6 +6,17 @@
 #include "file.h"
 #include "hashmap.h"
 
+typedef struct {
+  f64 sum;
+  i64 count;
+} Data;
+
+
+void print_res(s8 key, Data* data)
+{
+
+}
+
 int main()
 {
 
@@ -42,7 +53,7 @@ int main()
   file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer);
 
   b32 run = 1;
-  hashmap *map = { 0 };
+  HashMapTrie *map = { 0 };
 
   while (run)
   {
@@ -53,17 +64,24 @@ int main()
       break;
     }
 
+    b32 has_val = hmt_contains(&map, name);
     f64 temp;
     s8_try_parse_f64(temp_s, &temp);
-    f64* val_ptr = upsert(&map, name, &perm);
+    Data* val_ptr = hmt_insert_get(&map, name, Data, &perm);
     
-    *val_ptr = temp;
+
+    has_val = hmt_contains(&map, name);
+
+    val_ptr->sum += temp;
+    val_ptr->count += 1;
+
     s8_print(name);
     s8_print(s8_from_literal(" "));
-    s8_println(temp_s);
-
-   
+    s8_println(temp_s); 
 
     arena_reset(&line_arena);
   }
+
+  hmt_iter(&map, print_res);
+  // iter results 
 }
