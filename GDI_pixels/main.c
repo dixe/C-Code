@@ -48,7 +48,7 @@ void DrawCursorColor(Arena* arena) {
   s16 s = s16_empty(arena, 64);
   // maybe macro so we can just do s_format(s, L"Points: (%i, %i, %i)", r, g, b);
   // but this is ok
-  s.len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);
+  s.byte_len = swprintf_s(s.data, s.capacity, L"Points: (%i, %i, %i)", r, g, b);
 
   w_mouse m = w_mouse_state();
   rl_push_text(arena, s, m.x, m.y);

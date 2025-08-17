@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Lib", "Lib", "{17D8C85E-703
 		Lib\render_layer.h = Lib\render_layer.h
 		Lib\s_string.c = Lib\s_string.c
 		Lib\s_string.h = Lib\s_string.h
+		Lib\unicode.c = Lib\unicode.c
+		Lib\unicode.h = Lib\unicode.h
 		Lib\window.c = Lib\window.c
 		Lib\window.h = Lib\window.h
 	EndProjectSection

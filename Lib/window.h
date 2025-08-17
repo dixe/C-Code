@@ -27,7 +27,7 @@ typedef struct
 
 typedef struct {
   RL_RenderCommand* commands;
-  isize len;
+  isize byte_len;
 } RL_RenderCommands;
 
 

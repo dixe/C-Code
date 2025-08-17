@@ -18,11 +18,11 @@ s8 file_iter_next(Arena* a, FileIter* iter, u8 chr) {
   // either we did not load enough, or file is read to end;
   // should just alloca full arena cap as empty string1
   
-  if (iter->input_string.len == 0)
+  if (iter->input_string.byte_len == 0)
   {
-    iter->input_string.len = fread(iter->input_string.data, sizeof(u8), iter->input_string.capacity, iter->fptr);
+    iter->input_string.byte_len = fread(iter->input_string.data, sizeof(u8), iter->input_string.capacity, iter->fptr);
     iter->index = 0;
-    if (iter->input_string.len == 0)
+    if (iter->input_string.byte_len == 0)
     {
       fclose(iter->fptr);
       iter->fptr = 0;
@@ -33,11 +33,11 @@ s8 file_iter_next(Arena* a, FileIter* iter, u8 chr) {
   while (chr_pos == -1)
   {
     // append substring of inputstring to ret
-    s8_append(a, &ret, iter->input_string, iter->index, iter->input_string.len);
+    s8_append(a, &ret, iter->input_string, iter->index, iter->input_string.byte_len);
 
-    iter->input_string.len = fread(iter->input_string.data, sizeof(u8), iter->input_string.capacity, iter->fptr);
+    iter->input_string.byte_len = fread(iter->input_string.data, sizeof(u8), iter->input_string.capacity, iter->fptr);
     iter->index = 0;
-    if (iter->input_string.len == 0)
+    if (iter->input_string.byte_len == 0)
     {
       fclose(iter->fptr);
       iter->fptr = 0;

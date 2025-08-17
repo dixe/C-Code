@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include "arena.h"
 #include "s_string.h"
 #include "custom_types.h"
@@ -20,6 +20,11 @@ void print_res(s8 key, Data* data)
 int main()
 {
 
+  u8 data[] = { 0xE2, 0x9D, 0xA4 };
+  s8 utf8 = s8_from_bytes((u8*)data, sizeof(data));
+
+  s8_println(utf8);
+
   isize chunk_size = 256;
   Arena input_data = arena_create(chunk_size);
 
@@ -35,7 +40,7 @@ int main()
   file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer);
 
   s8 line = file_iter_next(&line_arena, iter, '\n');
-  while (line.len > 0) {
+  while (line.byte_len > 0) {
     // use whole line
     s8_println(line);
     arena_reset(&line_arena);
@@ -59,7 +64,7 @@ int main()
   {
     s8 name = file_iter_next(&line_arena, iter, ';');
     s8 temp_s = file_iter_next(&line_arena, iter, '\n');
-    if (name.len == 0 || temp_s.len == 0)
+    if (name.byte_len == 0 || temp_s.byte_len == 0)
     {
       break;
     }

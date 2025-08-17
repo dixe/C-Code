@@ -295,6 +295,11 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
+# unicode data files
+unicode/UDC*
+unicode/UDC.zip
+
+
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout
@@ -426,3 +431,5 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+/unicode/UCD.zip
+/unicode/UnicodeData File Format.html

@@ -4,7 +4,7 @@
 u64 hash(s8 s)
 {
   u64 h = 0x100;
-  for (u64 i = 0; i < (u64)s.len; i++)
+  for (u64 i = 0; i < (u64)s.byte_len; i++)
   {
     h ^= s.data[i];
     h *= 1111111111111111111u;
@@ -55,8 +55,8 @@ void* _hmt_upsert(HashMapTrie**map, s8 key, isize val_size, Arena* a)
   memset(new_map, 0, sizeof(HashMapTrie) + val_size);
   (*map) = new_map;
   // make a copy of the key into the hashmap arena
-  (*map)->key = s8_empty(a, key.len);
-  s8_append(a, &(*map)->key, key, 0, key.len);
+  (*map)->key = s8_empty(a, key.byte_len);
+  s8_append(a, &(*map)->key, key, 0, key.byte_len);
   return &(*map)->value;
 }
 

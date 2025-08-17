@@ -34,7 +34,7 @@ void rl_vm_paint(HWND window_handle, RL_RenderCommands* commands) {
   FillRect(memDC, &clientRect, bgBrush);
 
   // Draw text into the memory DC
-  for (i32 i = 0; i < commands->len; i++)
+  for (i32 i = 0; i < commands->byte_len; i++)
   {
     RL_RenderCommand command = commands->commands[i];
     switch (command.commandType)
@@ -42,7 +42,7 @@ void rl_vm_paint(HWND window_handle, RL_RenderCommands* commands) {
     case RL_RECTANGLE:
       break;
     case RL_TEXT:
-      TextOutW(memDC, command.x, command.y, command.text.data, (i32)command.text.len);
+      TextOutW(memDC, command.x, command.y, command.text.data, (i32)command.text.byte_len);
       break;
     }
   }
@@ -75,7 +75,7 @@ void rl_start_frame(Arena* arena)
 {
   // 1024 commands
   commands.commands = arena_alloc(arena, RL_RenderCommand, 1024);  
-  commands.len = 0;
+  commands.byte_len = 0;
 }
 
 void rl_end_frame()
@@ -87,9 +87,9 @@ void rl_end_frame()
 // push text output to command buffer
 void rl_push_text(Arena* arena, s16 text, i32 x, i32 y)
 {  
-  isize next = commands.len;
+  isize next = commands.byte_len;
   RL_RenderCommand* command = &commands.commands[next];
-  commands.len += 1;
+  commands.byte_len += 1;
 
   command->commandType = RL_TEXT;
   command->text = text; 

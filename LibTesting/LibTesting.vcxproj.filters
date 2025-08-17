@@ -27,6 +27,9 @@
     <ClCompile Include="..\Lib\assert.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Lib\unicode.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\s_string.h">
@@ -39,6 +42,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\assert.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Lib\unicode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

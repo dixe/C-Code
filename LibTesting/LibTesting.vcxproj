@@ -145,6 +145,7 @@
     <ClCompile Include="..\Lib\arena.c" />
     <ClCompile Include="..\Lib\assert.c" />
     <ClCompile Include="..\Lib\s_string.c" />
+    <ClCompile Include="..\Lib\unicode.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -152,6 +153,7 @@
     <ClInclude Include="..\Lib\assert.h" />
     <ClInclude Include="..\Lib\custom_types.h" />
     <ClInclude Include="..\Lib\s_string.h" />
+    <ClInclude Include="..\Lib\unicode.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,5 @@
 #pragma once
-
+#include "s_string.h"
 
 
 typedef struct {

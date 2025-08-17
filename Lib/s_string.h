@@ -6,7 +6,7 @@
 
 typedef struct {
   c16* data;
-  isize len;
+  isize byte_len;
   isize capacity;
 } s16;
 
@@ -20,20 +20,23 @@ s16 s16_empty_raw(c16* buffer, isize capacity);
 s16 s16_empty(Arena* arena, isize capacity);
 
 
-
 typedef struct {
   u8* data;
-  isize len;
+  isize byte_len;
   isize capacity;
 } s8;
 
 #define s8_from_literal(s) (s8){s, sizeof(s)-1, sizeof(s)}
 
-// using strlen to get len and capacity.
+// using strlen to get byte_len and capacity.
 // use this for literals, to s16 conversion
 s8 s8_empty_raw(u8* buffer, isize capacity);
 
 s8 s8_empty(Arena* arena, isize capacity);
+
+s8 s8_from_c_str(u8* lit_str);
+
+s8 s8_from_bytes(u8* bytes, isize count);
 
 u64 s8_print(s8 s);
 
