@@ -57,12 +57,17 @@ s8 s8_empty_raw(u8* buffer, isize capacity)
 
 s8 s8_empty(Arena* arena, isize capacity)
 {
-  u8* buffer = arena_alloc(arena, u8, capacity);
-
   s8 s;
-  s.data = buffer;
+  s.data = 0;
   s.byte_len = 0;
   s.capacity = capacity;
+  if (capacity == 0)
+  {
+    return s;
+  }
+
+  u8* buffer = arena_alloc(arena, u8, capacity);
+  s.data = buffer;
   return s;
 }
 
@@ -176,7 +181,25 @@ isize s8_grow_by(Arena* a, s8* s, isize additionalBytes)
   return 0;
 }
 
-b32 s8_try_parse_int(s8 s, i64* output)
+b32 s8_try_parse_i64(s8 s, i64* output)
+{
+  // TODO skip whitespace
+  // working with negative numbers
+  *output = 0;
+  for (isize i = 0; i < s.byte_len; i++)
+  {
+    *output *= 10;
+    if (s.data[i] < 48 || s.data[i] >57)
+    {
+      return 0;
+    }
+    *output += s.data[i] - 48;
+  }
+  return 1;
+}
+
+
+b32 s8_try_parse_u32(s8 s, u32* output)
 {
   // TODO skip whitespace
   *output = 0;
@@ -195,8 +218,8 @@ b32 s8_try_parse_int(s8 s, i64* output)
 b32 s8_try_parse_f64(s8 s, f64* output)
 {
   isize dot_pos = s8_find_char(0, s, '.');
-  b32 parsed;
-  i64 as_int;
+  b32 parsed = 0;
+  i64 as_int = 0;
   if (dot_pos == -1 || dot_pos + 1 == s.byte_len)
   {
     // no dot or last dot
@@ -204,7 +227,7 @@ b32 s8_try_parse_f64(s8 s, f64* output)
     {
       s.byte_len -= 1; // s passed by value, so changes are local
     }
-    parsed = s8_try_parse_int(s, &as_int);
+    parsed = s8_try_parse_i64(s, &as_int);
     *output = (f64)as_int;
     return parsed;
   }
@@ -213,17 +236,17 @@ b32 s8_try_parse_f64(s8 s, f64* output)
   s8 int_part_s = { 0 };
   int_part_s.data = s.data;
   int_part_s.byte_len = dot_pos; 
-  parsed = s8_try_parse_int(int_part_s, &as_int);
+  parsed = s8_try_parse_i64(int_part_s, &as_int);
   if (parsed != 1)
   {
     return 1;
   }
 
   s8 frac_part_s = { 0 };
-  i64 as_int2;
+  i64 as_int2 = 0;;
   frac_part_s.data = s.data + dot_pos + 1;
   frac_part_s.byte_len = s.byte_len - dot_pos -1;
-  parsed = s8_try_parse_int(frac_part_s, &as_int2);
+  parsed = s8_try_parse_i64(frac_part_s, &as_int2);
   
   if (parsed != 1)
   {

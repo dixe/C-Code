@@ -26,6 +26,11 @@ s8 file_iter_next(Arena* a, FileIter* iter, u8 chr);
 /// <returns></returns>
 isize file_init_iter(FileIter* iter, char* path, s8 buffer);
 
-
+/// <summary>
+/// Seek to the location, starting from origin in the file
+/// </summary>
+/// <param name="iter"></param>
+/// <param name="location"></param>
+void file_iter_seek(FileIter* iter, isize location);
 
 void file_iter_close(FileIter* iter);

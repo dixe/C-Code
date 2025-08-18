@@ -30,7 +30,7 @@ int main()
 
 
   file_init_iter(iter, "E:\\repos\\C-Code\\unicode\\UDC\\UnicodeData.txt", buffer);
-  unicode_load_data_from_file(unicode_arena, iter);
+  UnicodeDataArr unicode_data = unicode_load_data_from_file(unicode_arena, iter);
 
   u8 data[] = { 0xE2, 0x9D, 0xA4 };
   s8 utf8 = s8_from_bytes((u8*)data, sizeof(data));

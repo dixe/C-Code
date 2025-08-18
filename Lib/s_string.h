@@ -102,7 +102,16 @@ isize s8_grow_by(Arena*, s8* s, isize additionalBytes);
 /// <param name="s"></param>
 /// <param name="output"></param>
 /// <returns></returns>
-b32 s8_try_parse_int(s8 s, i64* output);
+b32 s8_try_parse_i64(s8 s, i64* output);
+
+
+/// <summary>
+/// Try to parse s as u32. Parses empty string as 0
+/// </summary>
+/// <param name="s"></param>
+/// <param name="output"></param>
+/// <returns></returns>
+b32 s8_try_parse_u32(s8 s, u32* output);
 
 /// <summary>
 /// Try to s as a f64. Parsed int before and after '.' seperatly 

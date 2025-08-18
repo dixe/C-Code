@@ -33,4 +33,4 @@ s8 utf32_to_utf8(u32 code, Arena* a);
 
 
 
-HashMapTrie unicode_load_data_from_file(Arena a, FileIter* fi);
+UnicodeDataArr unicode_load_data_from_file(Arena a, FileIter* fi);

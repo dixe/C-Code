@@ -35,9 +35,11 @@ s8 utf32_to_utf8(u32 code, Arena* a) {
 
 
 
-HashMapTrie unicode_load_data_from_file(Arena output_data, FileIter* fi)
+UnicodeDataArr unicode_load_data_from_file(Arena output_data, FileIter* fi)
 {
-  Arena line_data = arena_create(512);
+  
+  u8* line_data_ptr = arena_alloc(&output_data, u8, 512);
+  Arena line_data = arena_create_fixed(line_data_ptr, 512);
 
   // maybe read whole file are get line count
 
@@ -47,11 +49,16 @@ HashMapTrie unicode_load_data_from_file(Arena output_data, FileIter* fi)
   {
     lines += 1;
     line = file_iter_next(&line_data, fi, '\n');;    
-    //arena_reset(&line_data);
+    arena_reset(&line_data);
   }
 
-  //file_iter_seek(fi, 0);
-  while (1)
+  file_iter_seek(fi, 0);
+
+  //allocate array for data
+  UnicodeData* data = arena_alloc(&output_data, UnicodeData, lines);  
+  i32 index = 0;
+  b32 run = 1;
+  while (run)
   {
     s8 code = file_iter_next(&line_data, fi, ';');
     s8 name = file_iter_next(&line_data, fi, ';');
@@ -61,7 +68,7 @@ HashMapTrie unicode_load_data_from_file(Arena output_data, FileIter* fi)
     s8 cdm = file_iter_next(&line_data, fi, ';');
     s8 deicaml = file_iter_next(&line_data, fi, ';');
     s8 digit = file_iter_next(&line_data, fi, ';');
-    s8 num = file_iter_next(&line_data, fi, ';');    
+    s8 num = file_iter_next(&line_data, fi, ';');
     s8 mirroed = file_iter_next(&line_data, fi, ';');
     s8 v1_name = file_iter_next(&line_data, fi, ';');
     s8 comment = file_iter_next(&line_data, fi, ';');
@@ -69,8 +76,13 @@ HashMapTrie unicode_load_data_from_file(Arena output_data, FileIter* fi)
     s8 lower = file_iter_next(&line_data, fi, ';');
     s8 title = file_iter_next(&line_data, fi, '\n');
 
+    run = code.byte_len > 0;
 
-    s8_print(code);
+    b32 parsed = s8_try_parse_u32(code, &data[index].code);
+    data[index].char_name = s8_empty(&output_data, 0);
+    s8_append(&output_data, &data[index].char_name, name, 0, name.byte_len);
+
+    /*s8_print(code);
     s8_print(s8_from_c_str(" - "));
     s8_print(name);
     s8_print(s8_from_c_str(" - "));
@@ -80,17 +92,17 @@ HashMapTrie unicode_load_data_from_file(Arena output_data, FileIter* fi)
     s8_print(s8_from_c_str(" - "));
     s8_print(lower);
     s8_print(s8_from_c_str(" - "));
-    s8_println(title);
+    s8_println(title);*/
 
     arena_reset(&line_data);
+    index += 1;
 
   }
 
-
-  // cleanup line_data
-  HashMapTrie res = { 0 };
-
-  return res;
+  UnicodeDataArr ret = { 0 };
+  ret.data = data;
+  ret.len = lines;
+  return ret;
 
   
 

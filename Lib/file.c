@@ -24,8 +24,6 @@ s8 file_iter_next(Arena* a, FileIter* iter, u8 chr) {
     iter->index = 0;
     if (iter->input_string.byte_len == 0)
     {
-      fclose(iter->fptr);
-      iter->fptr = 0;
       return ret;
     }
     chr_pos = s8_find_char(iter->index, iter->input_string, chr);
@@ -39,8 +37,6 @@ s8 file_iter_next(Arena* a, FileIter* iter, u8 chr) {
     iter->index = 0;
     if (iter->input_string.byte_len == 0)
     {
-      fclose(iter->fptr);
-      iter->fptr = 0;
       return ret;
     }
 
@@ -63,7 +59,10 @@ isize file_init_iter(FileIter* iter, char* str, s8 buffer) {
   return 0;
 }
 
-
+void file_iter_seek(FileIter* iter, isize location)
+{
+  fseek(iter->fptr, location, 0);
+}
 
 void file_iter_close(FileIter* iter)
 {
