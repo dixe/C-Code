@@ -25,7 +25,20 @@ Arena arena_create(isize bytes)
   a.data = data;
   a.offset = 0;
   a.cap = bytes;
+  a.flags |= ARENA_GROWABLE;
   memset(a.data, 0xAB, a.cap);
+  return a;
+}
+
+
+Arena arena_create_fixed(u8* data, isize bytes)
+{
+  Arena a = { 0 };
+  a.data = data;
+  a.offset = 0;
+  a.cap = bytes;
+  a.flags |= ARENA_FIXED;
+  memset(a.data, 0xF0, a.cap);
   return a;
 }
 
@@ -34,12 +47,20 @@ void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i
 {
   isize bytes = objSize * count;
 
+
   isize padding = -(isize)(arena->data + arena->offset) & (align - 1);
   isize available = arena->cap - arena->offset - padding - bytes;
   if (available < 0 )
   {
+    if (arena->flags & ARENA_FIXED)
+    {
+      // OOM in fixed return void and exit
+
+      exit(9);
+      return 0;
+    }
     // commit more from reserved space. Assume oom is fatal
-    u8* new_pointer = (u8*)VirtualAlloc(arena->data + arena->offset, bytes, MEM_COMMIT, PAGE_READWRITE);
+    u8* new_pointer = (u8*)VirtualAlloc(arena->data + arena->cap, bytes, MEM_COMMIT, PAGE_READWRITE);
     arena->cap = bytes;
 
     memset(arena->data + arena->offset, 0xAC, bytes);
@@ -70,10 +91,23 @@ void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_siz
   isize available = arena->cap - arena->offset - padding - new_size;
   if (available < 0)
   {
-    // oom
-    u8* new_pointer = (u8*)VirtualAlloc(arena->data + arena->offset, required, MEM_COMMIT, PAGE_READWRITE);
-    arena->cap = arena->cap + required;
+    if (arena->flags & ARENA_FIXED )
+    {
+      // OOM in fixed return void and exit
 
+      exit(9);
+      return 0;
+    }
+    
+    u8* new_pointer = (u8*)VirtualAlloc(arena->data + arena->cap, required, MEM_COMMIT, PAGE_READWRITE);
+    if (new_pointer == NULL)
+    {
+      // oom
+      exit(32);
+      return NULL;
+    }
+
+    arena->cap = arena->cap + required;
     memset(arena->data + arena->offset, 0xAD, required);
     if (new_pointer == NULL)
     {

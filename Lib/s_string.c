@@ -154,6 +154,7 @@ void s8_append(Arena* a, s8* dest, s8 src, isize src_start, isize src_end)
     isize err = s8_grow_by(a, dest, additional);
   }
   memcpy(dest->data + dest->byte_len, src.data + src_start, src_len);
+
   dest->byte_len += src_len;
 }
 

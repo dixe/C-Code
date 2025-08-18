@@ -5,6 +5,7 @@
 #include "arena.h"
 #include "file.h"
 #include "hashmap.h"
+#include "unicode.h"
 
 typedef struct {
   f64 sum;
@@ -19,18 +20,33 @@ void print_res(s8 key, Data* data)
 
 int main()
 {
+  Arena unicode_arena = arena_create(1024 * 1024);
+
+  isize chunk_size = 256;
+  Arena input_data = arena_create(chunk_size);
+
+  FileIter* iter = arena_alloc(&input_data, FileIter);
+  s8 buffer = s8_empty(&input_data, input_data.cap - input_data.offset);
+
+
+  file_init_iter(iter, "E:\\repos\\C-Code\\unicode\\UDC\\UnicodeData.txt", buffer);
+  unicode_load_data_from_file(unicode_arena, iter);
 
   u8 data[] = { 0xE2, 0x9D, 0xA4 };
   s8 utf8 = s8_from_bytes((u8*)data, sizeof(data));
 
   s8_println(utf8);
 
-  isize chunk_size = 256;
-  Arena input_data = arena_create(chunk_size);
 
-  FileIter* iter = arena_alloc(&input_data, FileIter);
 
-  s8 buffer = s8_empty(&input_data, input_data.cap - input_data.offset);
+
+
+
+
+  arena_reset(&input_data);
+
+  iter = arena_alloc(&input_data, FileIter);
+
 
   isize line_size = 256;
   Arena line_arena = arena_create(line_size);

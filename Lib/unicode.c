@@ -6,7 +6,7 @@ s8 utf32_to_utf8(u32 code, Arena* a) {
   ret.byte_len = 0;
   if (code < 128)
   {
-    ret.data[0] = code;
+    ret.data[0] = (u8)code;
     ret.byte_len = 1;
   }
   else if (code < 0x800) // xxxyyyyzzzz
@@ -31,4 +31,69 @@ s8 utf32_to_utf8(u32 code, Arena* a) {
     ret.byte_len = 4;
   }
   return ret;
+}
+
+
+
+HashMapTrie unicode_load_data_from_file(Arena output_data, FileIter* fi)
+{
+  Arena line_data = arena_create(512);
+
+  // maybe read whole file are get line count
+
+  i32 lines = 0;
+  s8 line = file_iter_next(&line_data, fi, '\n');;
+  while (line.byte_len != 0)
+  {
+    lines += 1;
+    line = file_iter_next(&line_data, fi, '\n');;    
+    //arena_reset(&line_data);
+  }
+
+  //file_iter_seek(fi, 0);
+  while (1)
+  {
+    s8 code = file_iter_next(&line_data, fi, ';');
+    s8 name = file_iter_next(&line_data, fi, ';');
+    s8 gen_cat = file_iter_next(&line_data, fi, ';');
+    s8 cano_cat = file_iter_next(&line_data, fi, ';');
+    s8 bidi_cat = file_iter_next(&line_data, fi, ';');
+    s8 cdm = file_iter_next(&line_data, fi, ';');
+    s8 deicaml = file_iter_next(&line_data, fi, ';');
+    s8 digit = file_iter_next(&line_data, fi, ';');
+    s8 num = file_iter_next(&line_data, fi, ';');    
+    s8 mirroed = file_iter_next(&line_data, fi, ';');
+    s8 v1_name = file_iter_next(&line_data, fi, ';');
+    s8 comment = file_iter_next(&line_data, fi, ';');
+    s8 upper = file_iter_next(&line_data, fi, ';');
+    s8 lower = file_iter_next(&line_data, fi, ';');
+    s8 title = file_iter_next(&line_data, fi, '\n');
+
+
+    s8_print(code);
+    s8_print(s8_from_c_str(" - "));
+    s8_print(name);
+    s8_print(s8_from_c_str(" - "));
+    s8_print(v1_name);
+    s8_print(s8_from_c_str(" - "));
+    s8_print(upper);
+    s8_print(s8_from_c_str(" - "));
+    s8_print(lower);
+    s8_print(s8_from_c_str(" - "));
+    s8_println(title);
+
+    arena_reset(&line_data);
+
+  }
+
+
+  // cleanup line_data
+  HashMapTrie res = { 0 };
+
+  return res;
+
+  
+
+
+
 }

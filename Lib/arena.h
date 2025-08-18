@@ -3,15 +3,24 @@
 #include <Windows.h>
 #include "custom_types.h"
 
+typedef enum 
+{
+  ARENA_FIXED = 1,
+  ARENA_GROWABLE = 1 << 1,
+} ARENA_FLAGS;
+
 typedef struct {
   isize cap;
   isize offset;
   u8* data;
+  ARENA_FLAGS flags;
 } Arena;
 
 
 
 Arena arena_create(isize bytes);
+
+Arena arena_create_fixed(u8* data, isize bytes);
 
 void* alloc(Arena* a, ptrdiff_t isize, ptrdiff_t align, ptrdiff_t count, i32 flags);
 
