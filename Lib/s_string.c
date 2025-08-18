@@ -231,6 +231,13 @@ b32 s8_try_parse_u32_hex(s8 s, u32* output)
       continue;
     }
 
+    // a-f
+    if (s.data[i] > 96 && s.data[i] < 103)
+    {
+      *output += s.data[i] - 87;
+      continue;
+    }
+
     // X or x
     if (s.data[i] == 88 || s.data[i] == 120)
     {

@@ -17,8 +17,6 @@ int main()
 {
   parse_u32_hex_tests();
   parse_f64_tests();
-
-  parse_u32_hex_tests();
   u32_to_utf8_tests();
 
   printf("All passed");
@@ -80,7 +78,7 @@ void parse_u32_hex_tests() {
   ASSERT(parsed == 0x20C);
   s8_try_parse_u32_hex(s8_from_literal("0xE1D"), &parsed);
   ASSERT(parsed == 0xE1D);
-  s8_try_parse_u32_hex(s8_from_literal("0x210F"), &parsed);
+  s8_try_parse_u32_hex(s8_from_literal("0x210f"), &parsed);
   ASSERT(parsed == 0x210F);
   
   s8_try_parse_u32_hex(s8_from_literal("0xc"), &parsed);
