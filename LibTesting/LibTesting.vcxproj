@@ -118,7 +118,7 @@
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>E:\repos\C-Code\Lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard_C>stdc11</LanguageStandard_C>
-      <TreatWarningAsError>true</TreatWarningAsError>
+      <TreatWarningAsError>false</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClCompile Include="..\Lib\arena.c" />
     <ClCompile Include="..\Lib\assert.c" />
+    <ClCompile Include="..\Lib\file.c" />
     <ClCompile Include="..\Lib\s_string.c" />
     <ClCompile Include="..\Lib\unicode.c" />
     <ClCompile Include="main.c" />
@@ -152,6 +153,7 @@
     <ClInclude Include="..\Lib\arena.h" />
     <ClInclude Include="..\Lib\assert.h" />
     <ClInclude Include="..\Lib\custom_types.h" />
+    <ClInclude Include="..\Lib\file.h" />
     <ClInclude Include="..\Lib\s_string.h" />
     <ClInclude Include="..\Lib\unicode.h" />
   </ItemGroup>

@@ -11,11 +11,14 @@
 
 void parse_f64_tests();
 void u32_to_utf8_tests();
-
+void parse_u32_hex_tests();
 
 int main()
 {
+  parse_u32_hex_tests();
   parse_f64_tests();
+
+  parse_u32_hex_tests();
   u32_to_utf8_tests();
 
   printf("All passed");
@@ -42,12 +45,14 @@ void u32_to_utf8_tests()
   ASSERT(s_a.data[2] == 0x91);
   ASSERT(s_a.data[3] == 0xbb);
 }
+
+
 void parse_f64_tests() {
 
   // par
   i64 parsed = 0;
 
-  s8_try_parse_int(s8_from_literal("123"), &parsed);
+  s8_try_parse_i64(s8_from_literal("123"), &parsed);
   ASSERT(parsed == 123);
   f64 parsed_f;
 
@@ -59,6 +64,26 @@ void parse_f64_tests() {
   ASSERT(parsed_f == .12);
   s8_try_parse_f64(s8_from_literal("123.32"), &parsed_f);
   ASSERT(parsed_f == 123.32);
+}
 
 
+
+
+void parse_u32_hex_tests() {
+
+  // par
+  u32 parsed = 0;
+
+  s8_try_parse_u32_hex(s8_from_literal("0xC"), &parsed);
+  ASSERT(parsed == 0xC);
+  s8_try_parse_u32_hex(s8_from_literal("0x020C"), &parsed);
+  ASSERT(parsed == 0x20C);
+  s8_try_parse_u32_hex(s8_from_literal("0xE1D"), &parsed);
+  ASSERT(parsed == 0xE1D);
+  s8_try_parse_u32_hex(s8_from_literal("0x210F"), &parsed);
+  ASSERT(parsed == 0x210F);
+  
+  s8_try_parse_u32_hex(s8_from_literal("0xc"), &parsed);
+  ASSERT(parsed == 0xC);
+  
 }

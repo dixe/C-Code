@@ -198,6 +198,49 @@ b32 s8_try_parse_i64(s8 s, i64* output)
   return 1;
 }
 
+b32 s8_try_parse_u8(s8 s, u8* output)
+{
+  u32 d = 0;
+  b32 u32_res = s8_try_parse_u32(s, &d);
+  if(!u32_res || d > 0xFF)
+  {
+    return 0;
+  }
+  output = (u8)d;
+  return 1; 
+}
+
+b32 s8_try_parse_u32_hex(s8 s, u32* output)
+{
+  // TODO skip whitespace  
+  *output = 0;
+  for (isize i = 0; i < s.byte_len; i++)
+  {
+    *output *= 16;
+
+    // 0-9
+    if (s.data[i] > 47 && s.data[i] < 58)
+    {
+      *output += s.data[i] - 48;
+      continue;
+    }
+    // A-F
+    if (s.data[i] > 64 && s.data[i] < 71)
+    {
+      *output += s.data[i] - 55;
+      continue;
+    }
+
+    // X or x
+    if (s.data[i] == 88 || s.data[i] == 120)
+    {
+      *output = 0;
+      continue;
+    }
+    return 0;
+  }
+  return 1;
+}
 
 b32 s8_try_parse_u32(s8 s, u32* output)
 {

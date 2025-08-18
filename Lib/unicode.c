@@ -55,7 +55,10 @@ UnicodeDataArr unicode_load_data_from_file(Arena output_data, FileIter* fi)
   file_iter_seek(fi, 0);
 
   //allocate array for data
+  isize start = output_data.data + output_data.offset;
   UnicodeData* data = arena_alloc(&output_data, UnicodeData, lines);  
+
+  memset(start, 0, sizeof(UnicodeData) * lines);// output_data.offset - start);
   i32 index = 0;
   b32 run = 1;
   while (run)
@@ -78,9 +81,20 @@ UnicodeDataArr unicode_load_data_from_file(Arena output_data, FileIter* fi)
 
     run = code.byte_len > 0;
 
-    b32 parsed = s8_try_parse_u32(code, &data[index].code);
+    b32 parsed = s8_try_parse_u32_hex(code, &data[index].code);
+
+   if (!parsed)
+    {
+      exit(231);
+    }
     data[index].char_name = s8_empty(&output_data, 0);
     s8_append(&output_data, &data[index].char_name, name, 0, name.byte_len);
+    
+
+    parsed = s8_try_parse_u8(code, &data[index].uppercase_mapping);
+    parsed = s8_try_parse_u8(code, &data[index].lowercase_mapping);
+    parsed = s8_try_parse_u8(code, &data[index].titlcase_mapping);
+
 
     /*s8_print(code);
     s8_print(s8_from_c_str(" - "));
