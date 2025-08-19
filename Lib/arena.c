@@ -1,8 +1,12 @@
 #include "arena.h"
 
 #ifndef ARENA_RESERVE_SIZE
-#define ARENA_RESERVE_SIZE  ((i64)1) << 40
+#define ARENA_RESERVE_SIZE  ((i64)1) << 10
 #endif 
+//
+//#define MEM_RESERVE 0x00002000
+//#define MEM_COMMIT  0x00001000
+//#define PAGE_READWRITE 0x04
 
 
 Arena arena_create(isize bytes)
@@ -18,6 +22,7 @@ Arena arena_create(isize bytes)
   
   if (data == NULL)
   {    
+    u64 errNo = GetLastError();
     exit(30);  
     return a;
   }

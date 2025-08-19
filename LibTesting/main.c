@@ -5,7 +5,6 @@
 #include "arena.h"
 #include "file.h"
 #include "assert.h"
-#include <windows.h>
 #include <stdio.h>
 #include "unicode.h"
 
