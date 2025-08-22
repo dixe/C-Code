@@ -33,6 +33,9 @@
     <ClCompile Include="..\Lib\unicode.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Lib\io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\s_string.h">
@@ -48,6 +51,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\unicode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Lib\io.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

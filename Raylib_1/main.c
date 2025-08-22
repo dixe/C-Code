@@ -17,18 +17,20 @@
 
 #include "raylib.h"
 #include "arena.h"
-//#include "custom_types.h"
-//#include "hashmap.h"
+#include "hashmap.h"
 
 typedef struct {
-  int* data;
-  int count;
+  u32* data;
+  isize count;
 } CodePoints;
 
-//CodePoints remove_duplicate_codepoints(int* codepoints, int count, Arena* a);
+
+CodePoints remove_duplicate_codepoints(int* codepoints, int count, Arena* a);
 
 static void DrawTextBoxed(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint);   // Draw text using font inside rectangle limits
 static void DrawTextBoxedSelectable(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint);    // Draw text using font inside rectangle limits with support for text selection
+
+
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -42,7 +44,7 @@ int main(void)
 
   InitWindow(screenWidth, screenHeight, "raylib [text] example - draw text inside a rectangle");
 
-  const char text[] = u8"æ いろはにほへと　ち Text cannot escape\tthis container\t...word wrap also works when active so here's \
+  const char text[] = u8"Text cannot escape\tthis ægos! åge bøg  container\t...word wrap also works when active so here's \
 a long text for testing.\n\nLorem ipsum dolor sit amet, ædaw consectetur adipiscing elit, sed do eiusmod \
 tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet risus nullam eget felis eget.";
 
@@ -68,10 +70,17 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
   int codepointCount = 0;
   int* codepoints = LoadCodepoints(text, &codepointCount);
 
+  Arena arena = arena_create(1<<10);
+
+  CodePoints code_points = remove_duplicate_codepoints(codepoints, codepointCount, &arena);
+
+  for(i32 i = 0; i <code_points.count; i++)
+  {
+    u32 cp = code_points.data[i];
+
+  }
 
   Arena frame_arena = arena_create(sizeof(text));
-
-
 
   // Load font containing all the provided codepoint glyphs
   // A texture font atlas is automatically generated
@@ -81,10 +90,6 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
   SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
 
   UnloadCodepoints(codepoints);
-
-
-
-
 
   SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
   //--------------------------------------------------------------------------------------
@@ -132,12 +137,10 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
 
     ClearBackground(RAYWHITE);
 
-    DrawTexture(font.texture, 0, 0, BLACK);
-
     DrawRectangleLinesEx(container, 3, borderColor);    // Draw container border
 
     // Draw text in container (add some padding)
-    DrawTextBoxed(font, text, (Rectangle) { container.x + 4, container.y + 4, container.width - 4, container.height - 4 }, 20.0f, 2.0f, wordWrap, GRAY);
+    DrawTextBoxed(font, text, (Rectangle) { container.x + 4, container.y + 4, container.width - 4, container.height - 4 }, 20.0f, 2.0f, wordWrap, BLACK);
 
     DrawRectangleRec(resizer, borderColor);             // Draw the resize box
 
@@ -169,7 +172,7 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
 // Module functions definition
 //--------------------------------------------------------------------------------------
 
-/*
+
 CodePoints remove_duplicate_codepoints(int* codepoints, int count, Arena* a) {
 
   HashMapTrie* map = { 0 };
@@ -195,8 +198,7 @@ CodePoints remove_duplicate_codepoints(int* codepoints, int count, Arena* a) {
   }
 
   return ret;
-
-}*/
+}
 
 // Draw text using font inside rectangle limits
 static void DrawTextBoxed(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint)

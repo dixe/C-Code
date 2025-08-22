@@ -145,6 +145,7 @@
     <ClCompile Include="..\Lib\arena.c" />
     <ClCompile Include="..\Lib\file.c" />
     <ClCompile Include="..\Lib\hashmap.c" />
+    <ClCompile Include="..\Lib\io.c" />
     <ClCompile Include="..\Lib\s_string.c" />
     <ClCompile Include="..\Lib\unicode.c" />
     <ClCompile Include="main.c" />
@@ -153,6 +154,7 @@
     <ClInclude Include="..\Lib\arena.h" />
     <ClInclude Include="..\Lib\file.h" />
     <ClInclude Include="..\Lib\hashmap.h" />
+    <ClInclude Include="..\Lib\io.h" />
     <ClInclude Include="..\Lib\s_string.h" />
     <ClInclude Include="..\Lib\unicode.h" />
   </ItemGroup>

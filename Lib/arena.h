@@ -1,6 +1,5 @@
 #pragma once
 
-#include <Windows.h>
 #include "custom_types.h"
 
 typedef enum 
@@ -28,7 +27,9 @@ void arena_reset(Arena* arena);
 
 /// <summary>
 /// Try to reallocate a pointer with current_size, to a new pointer with new_size
-/// If ptr was last pointer allocated, the allocation are extended, otherwise reallocated in arena, old pointer still valid. Not release.
+/// If the pointer is at the end of the arena, the arena is extended, and the current pointer is returned
+/// If the pointer could not be extended, a new pointer with new_size is returned, the old pointer is stil valid
+/// Realloc does not do any memcopy of the reallocated pointer
 /// </summary>
 /// <param name="arena"></param>
 /// <param name="ptr"></param>

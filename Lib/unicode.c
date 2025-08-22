@@ -93,20 +93,7 @@ UnicodeDataArr unicode_load_data_from_file(Arena output_data, FileIter* fi)
 
     parsed = s8_try_parse_u8(code, &data[index].uppercase_mapping);
     parsed = s8_try_parse_u8(code, &data[index].lowercase_mapping);
-    parsed = s8_try_parse_u8(code, &data[index].titlcase_mapping);
-
-
-    /*s8_print(code);
-    s8_print(s8_from_c_str(" - "));
-    s8_print(name);
-    s8_print(s8_from_c_str(" - "));
-    s8_print(v1_name);
-    s8_print(s8_from_c_str(" - "));
-    s8_print(upper);
-    s8_print(s8_from_c_str(" - "));
-    s8_print(lower);
-    s8_print(s8_from_c_str(" - "));
-    s8_println(title);*/
+    parsed = s8_try_parse_u8(code, &data[index].titlcase_mapping);   
 
     arena_reset(&line_data);
     index += 1;

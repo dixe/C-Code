@@ -142,6 +142,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Lib\arena.c" />
+    <ClCompile Include="..\Lib\hashmap.c" />
+    <ClCompile Include="..\Lib\s_string.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -149,6 +151,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h" />
+    <ClInclude Include="..\Lib\hashmap.h" />
+    <ClInclude Include="..\Lib\s_string.h" />
     <ClInclude Include="raygui.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

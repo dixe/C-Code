@@ -74,26 +74,6 @@ s8 s8_empty(Arena* arena, isize capacity)
   return s;
 }
 
-void s8_println(s8 s)
-{
-  s8_print(s);
-  s8_print(s8_from_literal("\n"));
-}
-
-
-
-
-u64 s8_print(s8 s) 
-{/*
-  HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-  u64 written = 0;
-  int succ = WriteFile(hOut, s.data, (DWORD)s.byte_len, (LPDWORD)&written, 0);
-
-  return written;
-  */
-  return 0;
-}
-
 isize s8_find_char(isize start_index, s8 s, u8 chr) {
   for (isize i = start_index; i < s.byte_len; i++)
   {

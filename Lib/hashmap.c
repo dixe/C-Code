@@ -1,5 +1,5 @@
 #include "hashmap.h"
-
+#include "s_string.h"
 
 u64 hash(s8 s)
 {

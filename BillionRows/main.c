@@ -6,6 +6,7 @@
 #include "file.h"
 #include "hashmap.h"
 #include "unicode.h"
+#include "io.h"
 
 typedef struct {
   f64 sum;
@@ -20,7 +21,7 @@ void print_res(s8 key, Data* data)
 
 int main()
 {
-  Arena unicode_arena = arena_create(1024 * 1024);
+  Arena unicode_arena = arena_create(1);
 
   isize chunk_size = 256;
   Arena input_data = arena_create(chunk_size);
@@ -36,12 +37,6 @@ int main()
   s8 utf8 = s8_from_bytes((u8*)data, sizeof(data));
 
   s8_println(utf8);
-
-
-
-
-
-
 
   arena_reset(&input_data);
 
