@@ -77,14 +77,14 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
   for(i32 i = 0; i <code_points.count; i++)
   {
     u32 cp = code_points.data[i];
-
   }
 
   Arena frame_arena = arena_create(sizeof(text));
 
   // Load font containing all the provided codepoint glyphs
   // A texture font atlas is automatically generated
-  Font font = LoadFontEx("E:/repos/rust-gl-lib/assets/fonts/calibri.ttf", 36, 0, 250);
+  // only load the actual code points in the text, and only d
+  Font font = LoadFontEx("E:/repos/rust-gl-lib/assets/fonts/calibri.ttf", 36, code_points.data, code_points.count);
 
   // Set bilinear scale filter for better font scaling
   SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
@@ -136,6 +136,10 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
+
+
+
+    DrawTexture(font.texture, 0, 0, BLACK);
 
     DrawRectangleLinesEx(container, 3, borderColor);    // Draw container border
 

@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{4c5733c7-4fa1-49bd-8eda-8abba488036e}</ProjectGuid>
-    <RootNamespace>Raylib1</RootNamespace>
+    <ProjectGuid>{f6711438-b227-4e7e-961f-53205d3be504}</ProjectGuid>
+    <RootNamespace>Raylibstringart</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -114,9 +114,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard_C>stdc11</LanguageStandard_C>
       <AdditionalIncludeDirectories>E:\repos\C-Code\Lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -142,8 +141,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Lib\arena.c" />
-    <ClCompile Include="..\Lib\hashmap.c" />
-    <ClCompile Include="..\Lib\s_string.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -151,8 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h" />
-    <ClInclude Include="..\Lib\hashmap.h" />
-    <ClInclude Include="..\Lib\s_string.h" />
+    <ClInclude Include="raygui.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
