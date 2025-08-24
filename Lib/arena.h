@@ -37,8 +37,8 @@ void arena_reset(Arena* arena);
 /// <param name="new_size"></param>
 /// <returns></returns>
 void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_size);
-
-#define arena_alloc(...)            arena_allocx(__VA_ARGS__,arena_alloc3,arena_alloc2)(__VA_ARGS__)
-#define arena_allocx(a,b,c,d,...) d
-#define arena_alloc2(a, t)          (t *)alloc(a, sizeof(t), _Alignof(t), 1, 0)
-#define arena_alloc3(a, t, n)       (t *)alloc(a, sizeof(t), _Alignof(t), n, 0)
+//
+//#define arena_alloc(...)            arena_allocx(__VA_ARGS__,arena_alloc3,arena_alloc2)(__VA_ARGS__)
+//#define arena_allocx(a,b,c,d,...) d
+//#define arena_alloc2(a, t)          (t *)alloc(a, sizeof(t), _Alignof(t), 1, 0)
+#define arena_alloc(a, t, n)       (t *)alloc(a, sizeof(t), _Alignof(t), n, 0)

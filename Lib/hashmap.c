@@ -44,7 +44,7 @@ void* _hmt_upsert(HashMapTrie**map, s8 key, isize val_size, Arena* a)
   }
 
   // assume arena allocates in continious virtual address space
-  HashMapTrie* new_map = arena_alloc(a, HashMapTrie);
+  HashMapTrie* new_map = arena_alloc(a, HashMapTrie, 1);
   if (val_size > sizeof(void*))
   {
     arena_alloc(a, u8, val_size - sizeof(void*) ); // maybe we just need val_size- sizeof_
