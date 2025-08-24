@@ -48,7 +48,7 @@ typedef struct {
 
 Vector2 base_anchor;
 i32 anchor_width = 14;
-b32 Resize(Vector2 mouse, b32 resizing);
+b32 MoveGrid(Vector2 mouse, b32 resizing);
 MovingBrick MoveBrick(Vector2 mouse, Bricks* bricks, MovingBrick moving_brick);
 void DrawBoard(Bricks bricks, MovingBrick moving_brick);
 void AddBrick(Bricks* bricks, i32 left_col, i32 top_row, i32 len, DIRECTION dir, Color color);
@@ -86,7 +86,7 @@ int main(void)
   {    
     Vector2 mouse = GetMousePosition();
 
-    resizing = Resize(mouse, resizing);
+    resizing = MoveGrid(mouse, resizing);
     moving_brick = MoveBrick(mouse, &bricks, moving_brick);
 
     // Draw
@@ -131,13 +131,15 @@ MovingBrick MoveBrick(Vector2 mouse, Bricks* bricks, MovingBrick moving_brick) {
       {
         if (bricks->data[i].brick_id == moving_brick.brick_id)
         {
-          i32 mouse_start_row = (moving_brick.starting_pos.x - base_anchor.x) / tileW;
-          i32 mouse_end_row = (moving_brick.current_pos.x - base_anchor.x) / tileW;
+          i32 mouse_start_col = (moving_brick.starting_pos.x - base_anchor.x) / tileW;
+          i32 mouse_end_col= (moving_brick.current_pos.x - base_anchor.x) / tileW;
+          i32 mouse_start_row = (moving_brick.starting_pos.y - base_anchor.y) / tileW;
+          i32 mouse_end_row = (moving_brick.current_pos.y - base_anchor.y) / tileW;
 
-          f32 x_offet = (moving_brick.current_pos.x - moving_brick.starting_pos.x);
-          i32 col_offset = (bricks->data[i].dir == HORIZONTAL) * (moving_brick.current_pos.x - moving_brick.starting_pos.x)/tileW;
-          //y_offset = (bricks.data[i].dir == VERTICAL) * (moving_brick.current_pos.y - moving_brick.starting_pos.y);
-          bricks->data[i].left_col += mouse_end_row - mouse_start_row;
+          // validate move before assignment
+          bricks->data[i].left_col += (bricks->data[i].dir == HORIZONTAL) * (mouse_end_col - mouse_start_col);
+          bricks->data[i].top_row += (bricks->data[i].dir == VERTICAL) * (mouse_end_row - mouse_start_row);
+
         }
       }
 
@@ -165,7 +167,8 @@ MovingBrick MoveBrick(Vector2 mouse, Bricks* bricks, MovingBrick moving_brick) {
 
   return moving_brick;
 }
-b32 Resize(Vector2 mouse, b32 resizing) {
+
+b32 MoveGrid(Vector2 mouse, b32 resizing) {
 
   if (resizing)
   {
@@ -219,7 +222,7 @@ void DrawBoard(Bricks bricks, MovingBrick moving_brick)
       y_offset = (bricks.data[i].dir == VERTICAL) * (moving_brick.current_pos.y - moving_brick.starting_pos.y);
     }
 
-    DrawRectangle(br.x + x_offset, br.y, br.width, br.height, bricks.data[i].color);
+    DrawRectangle(br.x + x_offset, br.y + y_offset, br.width, br.height, bricks.data[i].color);
   }
 
 }
