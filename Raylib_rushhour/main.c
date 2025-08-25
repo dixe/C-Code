@@ -59,7 +59,7 @@ Rectangle BrickRect(Brick b);
 int main(void)
 {
 
-  b32 resizing = 0;
+  b32 moving_grid = 0;
   MovingBrick moving_brick = { 0 };
   base_anchor = (Vector2){ 200 + 10, 60};
   // See https://www.youtube.com/watch?v=dBlSmg5T13M
@@ -83,10 +83,10 @@ int main(void)
   AddBrick(&bricks, 0, 2, 2, VERTICAL, YELLOW);
   // Main game loop
   while (!WindowShouldClose())        // Detect window close button or ESC key
-  {    
+  {
     Vector2 mouse = GetMousePosition();
 
-    resizing = MoveGrid(mouse, resizing);
+    moving_grid = MoveGrid(mouse, moving_grid);
     moving_brick = MoveBrick(mouse, &bricks, moving_brick);
 
     // Draw
@@ -95,6 +95,7 @@ int main(void)
     ClearBackground(BLACK);
     DrawBoard(bricks, moving_brick);
     EndDrawing();
+
   }
 
   CloseWindow();
@@ -174,12 +175,12 @@ b32 MoveGrid(Vector2 mouse, b32 resizing) {
   {
     if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) resizing = false;
 
-    base_anchor.x = mouse.x - anchor_width/2;
-    base_anchor.y = mouse.y - anchor_width / 2;
+    base_anchor.x = mouse.x + anchor_width/2;
+    base_anchor.y = mouse.y + anchor_width / 2;
   }
   else
   {
-    // Check if we're resizing
+    // Check if we're moving_grid
     Rectangle anchor = (Rectangle){ base_anchor.x - anchor_width, base_anchor.y - anchor_width, anchor_width, anchor_width };
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, anchor)) resizing = true;
   }
