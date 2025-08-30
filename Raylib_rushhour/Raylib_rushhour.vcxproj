@@ -141,11 +141,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Lib\arena.c" />
+    <ClCompile Include="..\Lib\dyn_array.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h" />
     <ClInclude Include="..\Lib\custom_types.h" />
+    <ClInclude Include="..\Lib\dyn_array.h" />
     <ClInclude Include="raygui.h" />
   </ItemGroup>
   <ItemGroup>

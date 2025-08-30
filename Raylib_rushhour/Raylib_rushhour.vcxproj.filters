@@ -21,6 +21,9 @@
     <ClCompile Include="..\Lib\arena.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Lib\dyn_array.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="raygui.h">
@@ -30,6 +33,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\custom_types.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Lib\dyn_array.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

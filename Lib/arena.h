@@ -31,10 +31,10 @@ void arena_reset(Arena* arena);
 /// If the pointer could not be extended, a new pointer with new_size is returned, the old pointer is stil valid
 /// Realloc does not do any memcopy of the reallocated pointer
 /// </summary>
-/// <param name="arena"></param>
-/// <param name="ptr"></param>
-/// <param name="current_size"></param>
-/// <param name="new_size"></param>
+/// <param name="arena">Arena that the current allocation is in and where the new allocation will be</param>
+/// <param name="ptr">Pointer to current allocaiton</param>
+/// <param name="current_size">Size in bytes of current allocation</param>
+/// <param name="new_size">Size in bytes of new allocatio</param>
 /// <returns></returns>
 void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_size);
 //
