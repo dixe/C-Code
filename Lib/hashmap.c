@@ -1,6 +1,8 @@
 #include "hashmap.h"
 #include "s_string.h"
 #include <string.h>  // For memcpy
+#include "dyn_array.h"
+
 
 u64 hash(s8 s)
 {
@@ -61,6 +63,33 @@ void* _hmt_upsert(HashMapTrie**map, s8 key, isize val_size, Arena* a)
   return &(*map)->value;
 }
 
+void hmt_all_key_internal(Arena* a, Keys* keys, HashMapTrie** map)
+{
+  for (isize i = 0; i < 1 << HASHMAPTRIE_POT; i++)
+  {
+    HashMapTrie** child = &(*map)->child[i];
+    if (*child != 0)
+    {
+      if (keys->count >= keys->capacity)
+      {
+        // grow keys 
+        keys->data = arr_grow(a, keys->count, &keys->capacity, sizeof(s8), keys->data);
+      }
+
+      keys->data[keys->count] = (*child)->key;
+      keys->count += 1;
+      // add to chils keys
+      hmt_all_key_internal(a, keys, child);
+    }    
+  }
+}
+
+Keys hmt_all_keys(Arena* a, HashMapTrie** map)
+{
+  Keys res = { 0 };
+  hmt_all_key_internal(a, &res, map);
+  return res;
+}
 
 void hmt_iter(HashMapTrie** map, void (*fptr)(s8, void*))
 {

@@ -19,7 +19,15 @@ typedef struct {
 //} n;
 
 
-
+/// <summary>
+/// Grow the array in the arena a, if the count is equal or larger than capcity
+/// </summary>
+/// <param name="a">Arena where the array is allocated, and where it will be reallocated</param>
+/// <param name="count">Current count of items in array</param>
+/// <param name="capacity">Pointer to capacity field of array</param>
+/// <param name="data_size">Size of data type in the array</param>
+/// <param name="data_ptr">pointer to data</param>
+/// <returns></returns>
 void* arr_grow(Arena* a, isize count, isize* capacity, isize data_size, void* data_ptr);
 //void arr_add_intern(Arena* a, ArrayHeader* arr, void* new_data, isize new_data_size);
 

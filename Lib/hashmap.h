@@ -22,6 +22,12 @@ typedef struct HashMapTrie {
 } HashMapTrie;
 
 
+typedef struct {
+  isize count;
+  isize capacity;
+  s8* data;
+} Keys;
+
 u64 hash(s8 s);
 
 /// <summary>
@@ -40,6 +46,7 @@ void* hmt_get(HashMapTrie** map, s8 key);
 /// <returns></returns>
 b32 hmt_contains(HashMapTrie** map, s8 key);
 
+Keys hmt_all_keys(Arena* a, HashMapTrie** map);
 
 /// <summary>
 /// See hmt_insert_get for clean interface
@@ -62,4 +69,4 @@ void* _hmt_upsert(HashMapTrie** map, s8 key, isize val_size, Arena* a);
 void hmt_iter(HashMapTrie** map, void (*fptr)(s8, void*));
 
 ///Wrapper for upsert
-#define hmt_insert_get(map, key, t, a) (t *)_hmt_upsert(map, key, sizeof(t), a);
+#define hmt_insert_get(map, key, t, a) (t *)_hmt_upsert(map, key, sizeof(t), a)

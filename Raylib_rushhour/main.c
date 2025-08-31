@@ -38,11 +38,13 @@ void UpdateGameToBoard(GameState* game, BoardState board);
 
 BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game);
 
-Solution FindSolution(Arena* data_arena, Arena* scratch, GameState from_state);
+Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state);
+
+Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState inital_state);
 
 b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col);
 Vector2 base_anchor;
-void ResetBricks1(GameState* game) { 
+void ResetBricks(GameState* game) { 
   
   memset(&game->board, 0, sizeof(game->board));
   memset(&game->bricks, 0, sizeof(game->bricks));
@@ -56,7 +58,7 @@ void ResetBricks1(GameState* game) {
   AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);
 }
 
-void ResetBricks(GameState* game) {
+void ResetBricks1(GameState* game) {
 
   memset(&game->board, 0, sizeof(game->board));
   memset(&game->bricks, 0, sizeof(game->bricks));
@@ -170,9 +172,24 @@ int main(void)
       available_moves.capacity = 0;
       all_moves = 0;
       arena_reset(&moves_arena);
-      solution = FindSolution(&moves_arena, &frame_arena, game);      
+      all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
+      solution = FindSolution(&moves_arena, &frame_arena, all_moves, game.board);
     }
 
+    if (IsWinningState(game.board))
+    {
+      if (GuiButton((Rectangle) { 100, 140, 80, 40 }, "Find puzzle"))
+      {
+        available_moves.count = 0;
+        available_moves.capacity = 0;
+        all_moves = 0;
+        arena_reset(&moves_arena);
+        all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
+
+       solution = FindLongestPuzzle(&moves_arena, &frame_arena, all_moves, game.board);
+       UpdateGameToBoard(&game, solution.initial_board);
+      }
+    }
     if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Find moves"))
     {
       // Reset moves arena, array and table
@@ -204,7 +221,7 @@ int main(void)
         }
       }
 
-      s8 text = s8_from_literal("Solution ");
+      s8 text = s8_from_c_str("Solution ");
 
       s8 number_s = s8_isize_to_s8(&frame_arena, solution.moves.count);
       s8_append(&frame_arena, &text, number_s, 0, number_s.byte_len);
@@ -377,20 +394,15 @@ Moves FindMoves(Arena* a, GameState game)
 }
 
 
-Solution FindSolution(Arena* data_arena, Arena* scratch, GameState from_state)
+Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_board)
 {
-  // find all moves, store in scratch arena
-  BoardGraph* all_moves = FindAllMoves(scratch, scratch, from_state);
-
   // all distance between nodes are 1 move, so we can use BFS to find the first state where iswinning is true
-
-
   Moves queue = { 0 };
   HashMapTrie* visited = { 0 };
 
-  s8 init_key = s8_from_bytes((u8*)&from_state.board, sizeof(BoardState));
+  s8 init_key = s8_from_bytes((u8*)&initial_board, sizeof(BoardState));
   Move root_move = { 0 };
-  root_move.board = from_state.board;
+  root_move.board = initial_board;
 
   Move* m = hmt_insert_get(&visited, init_key, Move, scratch);
   *m = root_move;
@@ -427,7 +439,7 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, GameState from_state)
         i32 debug = 2;
       }
       Solution sol = { 0 };
-      sol.initial_board = from_state.board;
+      sol.initial_board = initial_board;
       sol.moves = res;
 
       return sol;
@@ -455,6 +467,32 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, GameState from_state)
   
   Solution sol = { 0 };
   sol.current_index = -1;
+  return sol;
+}
+
+Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state) {
+
+  Keys keys = hmt_all_keys(scratch, &all_moves);
+
+  Solution sol = { 0 };
+
+  for (i32 i = 0; i < keys.count; i++)
+  {
+    BoardState* board = (BoardState*)keys.data[i].data;
+    Solution solution = FindSolution(scratch, scratch, all_moves, *board);
+    if (solution.moves.count > sol.moves.count)
+    {
+      sol = solution;
+    }
+  }
+
+  // clone sol to data arena
+  Move* buffer = arena_alloc(data_arena, Move, sol.moves.count);
+  if (sol.moves.count > 0 && sol.moves.data != 0)
+  {
+    memcpy(buffer, sol.moves.data, sizeof(Move) * sol.moves.count);
+    sol.moves.data = buffer;
+  }
   return sol;
 }
 
