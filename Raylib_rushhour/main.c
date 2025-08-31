@@ -67,6 +67,7 @@ void ResetBricks(GameState* game) {
   // puzzle from here https://boardgamereview.co.uk/wp-content/uploads/2020/11/Rush-Hour-Puzzle-Game.png
   AddBrick(game, 2, 2, 2, VERTICAL, BLUE);
   AddBrick(game, 3, 2, 2, VERTICAL, BLUE);
+  
 
   AddBrick(game, 4, 0, 2, HORIZONTAL, ORANGE);
   AddBrick(game, 3, 0, 2, VERTICAL, GRAY);
@@ -169,7 +170,7 @@ int main(void)
       available_moves.capacity = 0;
       all_moves = 0;
       arena_reset(&moves_arena);
-      solution = FindSolution(&moves_arena, &frame_arena, game);
+      solution = FindSolution(&moves_arena, &frame_arena, game);      
     }
 
     if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Find moves"))
@@ -239,6 +240,10 @@ int main(void)
     ClearBackground(BLACK);
     DrawBoard(game, moving_brick);
 
+    if (solution.current_index == -1)
+    {
+      DrawText("No solution found", 400, 80, 30, RED);
+    }
     if (IsWinningState(game.board))
     {
       DrawText("GREAT SUCCESS", 400, 80, 30, GREEN);
@@ -440,6 +445,10 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, GameState from_state)
       }
     }
   }
+  
+  Solution sol = { 0 };
+  sol.current_index = -1;
+  return sol;
 }
 
 void UpdateGameToBoard(GameState* game, BoardState board)
