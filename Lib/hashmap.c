@@ -27,11 +27,6 @@ b32 hmt_contains(HashMapTrie** map, s8 key)
 
 void* _hmt_upsert(HashMapTrie**map, s8 key, isize val_size, Arena* a)
 {
-  if (key.data[0] > 5)
-  {
-    i32 debug = 2;
-  }
-
   u64 h = hash(key);  
   for (; *map; h <<= HASHMAPTRIE_POT)
   {    

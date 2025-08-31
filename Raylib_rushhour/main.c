@@ -1,5 +1,5 @@
 ﻿#pragma warning(push, 0)
-#pragma warning (disable : 4996 6031 6387 6029) // ignore fopen insecure in raylib
+#pragma warning (disable : 4996 6031 6387 6029 26451) // ignore fopen insecure in raylib
 #include "raylib.h"
 #define RAYGUI_IMPLEMENTATION
 #include "raygui.h"
@@ -48,10 +48,10 @@ void ResetBricks(GameState* game) {
   // TARGET PIECE
   AddBrick(game, 1, 2, 2, HORIZONTAL, GREEN);
   AddBrick(game, 4, 2, 2, VERTICAL, BLUE);
-  /*AddBrick(game, 4, 4, 2, VERTICAL, BLUE);
+  AddBrick(game, 4, 4, 2, VERTICAL, BLUE);
 
   AddBrick(game, 1, 1, 4, HORIZONTAL, GRAY);
-  AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);*/
+  AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);
 }
 
 
@@ -203,7 +203,8 @@ BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
   HashMapTrie* res = { 0 };
 
   i32 count = 0;
-  HashMapTrie *checked_states = { 0 };    
+  i32 count2 = 0;
+  HashMapTrie *seen_states = { 0 };    
   Moves unchecked = { 0 };
 
 
@@ -219,18 +220,26 @@ BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
   m.board = game.board;
   moves_add(scratch, &unchecked, &m);
 
+  // add current game state as seen, so we don't readd it to unchecked queue
+  s8 start_key = s8_from_bytes((u8*)&game.board, sizeof(BoardState));
+  hmt_insert_get(&seen_states, start_key, i32, scratch);
+
   while (unchecked.count > 0)
   {
     // pop next move
     Move next = unchecked.data[unchecked.count - 1];
    
-    unchecked.count--;
-    s8 key = s8_from_bytes((u8*)&next.board, sizeof(BoardState));
-    u64 h = hash(key);
-  
-    hmt_insert_get(&checked_states, key, i32, scratch);
+    if (next.board.data[15] == 1 &&
+      next.board.data[14] == 1 &&
+      next.board.data[16] == 2 &&
+      next.board.data[22] == 2)
+    {
+      i32 debug = 2;
+    }
 
-    Moves* moves = hmt_insert_get(&res, key, Moves, data_arena);
+    unchecked.count--;
+    s8 next_key = s8_from_bytes((u8*)&next.board, sizeof(BoardState));
+    Moves* moves = hmt_insert_get(&res, next_key, Moves, data_arena);
     count += 1;
 
     UpdateGameToBoard(&tmpGame, next.board);
@@ -238,13 +247,22 @@ BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
     for (i32 i = 0; i < available_moves.count; i++)
     {
       Move neighbour = available_moves.data[i];     
-
       moves_add(data_arena, moves, &neighbour);      
-
-      key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
-      if (!hmt_contains(&checked_states, key))
+      
+      s8 neighbour_key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
+      
+      if (!hmt_contains(&seen_states, neighbour_key))
       { 
+       
+        if (neighbour.board.data[15] == 1 &&
+          neighbour.board.data[14] == 1 &&
+          neighbour.board.data[16] == 2 &&
+          neighbour.board.data[22] == 2)
+        {
+          i32 debug = 2;
+        }
         moves_add(scratch, &unchecked, &neighbour);
+        hmt_insert_get(&seen_states, neighbour_key, i32, scratch);
       }
     }
   }
@@ -479,18 +497,20 @@ void DrawBoard(GameState game, MovingBrick moving_brick)
     DrawRectangle((i32)br.x + x_offset, (i32)br.y + y_offset, (i32)br.width, (i32)br.height, game.bricks.data[i].color);
   }
 
+  i32 idx = 0;
   for (i32 i = 0; i < GRIDW; i++)
   {
     for (i32 j = 0; j < GRIDW; j++)
     {
       char str[6] = { 0 };
       u8 id = game.board.data[i * GRIDW + j];
-      snprintf(str, 6, "%d", id);
+      snprintf(str, 6, "%d", id > 0 ? id : idx);
       Rectangle tile_rect = TileRect(i, j, 1, 1);
       Color color = id == 0 ? WHITE : BLACK;
       i32 x = (i32)(tile_rect.x + tile_rect.width / 2 - 5);
       i32 y = (i32)(tile_rect.y + tile_rect.height / 2 - 5);
       DrawText(str, x, y, 20, color);
+      idx += 1;
     }
   }
 
