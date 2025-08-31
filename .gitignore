@@ -433,3 +433,4 @@ FodyWeavers.xsd
 *.msp
 /unicode/UCD.zip
 /unicode/UnicodeData File Format.html
+/enc_temp_folder/*

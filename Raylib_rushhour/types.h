@@ -56,6 +56,9 @@ typedef struct {
   u8 brick_id;
   i32 horizontal;
   i32 vertical;
+  // used for graphs
+  s8 from_key;  
+  i32 depth;
 } Move;
 
 typedef struct {
@@ -63,3 +66,10 @@ typedef struct {
   isize capacity;
   Move* data;
 } Moves;
+
+
+typedef struct {
+  BoardState initial_board;
+  Moves moves;
+  isize current_index;
+} Solution;

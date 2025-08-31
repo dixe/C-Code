@@ -29,7 +29,7 @@ MovingBrick MoveBrick(Vector2 mouse, GameState* bricks, MovingBrick moving_brick
 void DrawBoard(GameState game, MovingBrick moving_brick);
 void AddBrick(GameState* game, i32 left_col, i32 top_row, i32 len, DIRECTION dir, Color color);
 void UpdateBoard(GameState* game);
-b32 IsWinningState(Bricks bricks);
+b32 IsWinningState(BoardState board);
 Rectangle BrickRect(Brick b);
 
 Rectangle TileRect(i32 col, i32 row, i32 horizontal_tile, i32 vertical_tiles);
@@ -38,9 +38,11 @@ void UpdateGameToBoard(GameState* game, BoardState board);
 
 BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game);
 
+Solution FindSolution(Arena* data_arena, Arena* scratch, GameState from_state);
+
 b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col);
 Vector2 base_anchor;
-void ResetBricks(GameState* game) { 
+void ResetBricks1(GameState* game) { 
   
   memset(&game->board, 0, sizeof(game->board));
   memset(&game->bricks, 0, sizeof(game->bricks));
@@ -52,6 +54,31 @@ void ResetBricks(GameState* game) {
 
   AddBrick(game, 1, 1, 4, HORIZONTAL, GRAY);
   AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);
+}
+
+void ResetBricks(GameState* game) {
+
+  memset(&game->board, 0, sizeof(game->board));
+  memset(&game->bricks, 0, sizeof(game->bricks));
+
+  // TARGET PIECE
+  AddBrick(game, 0, 2, 2, HORIZONTAL, GREEN);
+
+  // puzzle from here https://boardgamereview.co.uk/wp-content/uploads/2020/11/Rush-Hour-Puzzle-Game.png
+  AddBrick(game, 2, 2, 2, VERTICAL, BLUE);
+  AddBrick(game, 3, 2, 2, VERTICAL, BLUE);
+
+  AddBrick(game, 4, 0, 2, HORIZONTAL, ORANGE);
+  AddBrick(game, 3, 0, 2, VERTICAL, GRAY);
+
+  AddBrick(game, 1, 4, 3, HORIZONTAL, YELLOW);
+
+
+  AddBrick(game, 4, 3, 2, VERTICAL, MAROON);
+  AddBrick(game, 5, 4, 2, VERTICAL, LIGHTGRAY);
+
+  AddBrick(game, 5, 2, 2, VERTICAL, WHITE);
+  AddBrick(game, 0, 4, 2, VERTICAL, WHITE);
 }
 
 
@@ -92,7 +119,7 @@ int main(void)
 
   b32 moving_grid = 0;
   MovingBrick moving_brick = { 0 };
-  base_anchor = (Vector2){ 200 + 10, 60};
+  base_anchor = (Vector2){ 330, 160};
   // See https://www.youtube.com/watch?v=dBlSmg5T13M
   // Initialization
   //--------------------------------------------------------------------------------------  
@@ -102,7 +129,7 @@ int main(void)
   SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
   //--------------------------------------------------------------------------------------
 
-  Arena game_arena = arena_create(1024);
+  Arena moves_arena = arena_create(1024);
   Arena frame_arena = arena_create(1024);
   
   GameState game = { 0 };
@@ -111,6 +138,7 @@ int main(void)
   // Main game loop
   Moves available_moves = { 0 };
   HashMapTrie* all_moves = { 0 };
+  Solution solution = { 0 };
   while (!WindowShouldClose())        // Detect window close button or ESC key
   {
     Vector2 mouse = GetMousePosition();
@@ -126,19 +154,61 @@ int main(void)
     
     if (GuiButton((Rectangle) { 100, 55, 80, 40 }, "Find all moves"))
     {
-      all_moves = FindAllMoves(&game_arena, &frame_arena, game);
+      // Reset moves arena, array and table
+      available_moves.count = 0;
+      available_moves.capacity = 0;
+      all_moves = 0 ;
+      arena_reset(&moves_arena);
+      all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
+    }
 
+    if (GuiButton((Rectangle) { 100, 95, 80, 40 }, "Find solution"))
+    {
+      // Reset moves arena, array and table
+      available_moves.count = 0;
+      available_moves.capacity = 0;
+      all_moves = 0;
+      arena_reset(&moves_arena);
+      solution = FindSolution(&moves_arena, &frame_arena, game);
     }
 
     if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Find moves"))
-    { 
-      //available_moves = FindAllMoves(&game_arena, &frame_arena, game);
-      available_moves = FindMoves(&game_arena, game);      
+    {
+      // Reset moves arena, array and table
+      available_moves.count = 0;
+      available_moves.capacity = 0;
+      all_moves = 0;
+      available_moves = FindMoves(&moves_arena, game);
     }
 
     s8 key = s8_from_bytes((u8*)&game.board, sizeof(BoardState));
     Moves* moves = (Moves*) hmt_get(&all_moves, key);
 
+    if(solution.moves.data != 0)
+    { 
+      if (solution.current_index < (solution.moves.count - 1))
+      {
+        if (GuiButton(rect(300, 10, 80, 40), "Next"))
+        {
+          solution.current_index += 1;
+          UpdateGameToBoard(&game, solution.moves.data[solution.current_index].board);
+        }
+      }
+      if (solution.current_index > 0)
+      {
+        if (GuiButton(rect(200, 10, 80, 40), "Prev"))
+        {
+          solution.current_index -= 1;
+          UpdateGameToBoard(&game, solution.moves.data[solution.current_index].board);
+        }
+      }
+
+      if (GuiButton(rect(400, 10, 80, 40), "Solution"))
+      {
+        solution.current_index = solution.moves.count - 1;
+        UpdateGameToBoard(&game, solution.moves.data[solution.current_index].board);
+      }
+    }
     if (moves != 0)
     {
       for (i32 i = 0; i < moves->count; i++)
@@ -153,8 +223,8 @@ int main(void)
     else {
       for (i32 i = 0; i < available_moves.count; i++)
       {
-
-        if (GuiButton(rect(10, 55 + 5 + 40 * i, 80, 40 ), "Show move"))
+        s8 text = button_title(&frame_arena, available_moves.data[i]);
+        if (GuiButton(rect(10, 55 + 5 + 40 * i, 80, 40 ), text.data))
         {
           UpdateGameToBoard(&game, available_moves.data[i].board);
         }
@@ -169,9 +239,9 @@ int main(void)
     ClearBackground(BLACK);
     DrawBoard(game, moving_brick);
 
-    if (IsWinningState(game.bricks))
+    if (IsWinningState(game.board))
     {
-      DrawText("GREAT SUCCESS", 400, 40, 30, GREEN);
+      DrawText("GREAT SUCCESS", 400, 80, 30, GREEN);
     }
 
     EndDrawing();
@@ -207,7 +277,6 @@ BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
   HashMapTrie *seen_states = { 0 };    
   Moves unchecked = { 0 };
 
-
   GameState tmpGame = { 0 };
   for (i32 i = 0; i < game.bricks.count; i++)
   {
@@ -228,16 +297,8 @@ BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
   {
     // pop next move
     Move next = unchecked.data[unchecked.count - 1];
-   
-    if (next.board.data[15] == 1 &&
-      next.board.data[14] == 1 &&
-      next.board.data[16] == 2 &&
-      next.board.data[22] == 2)
-    {
-      i32 debug = 2;
-    }
-
     unchecked.count--;
+
     s8 next_key = s8_from_bytes((u8*)&next.board, sizeof(BoardState));
     Moves* moves = hmt_insert_get(&res, next_key, Moves, data_arena);
     count += 1;
@@ -253,14 +314,6 @@ BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
       
       if (!hmt_contains(&seen_states, neighbour_key))
       { 
-       
-        if (neighbour.board.data[15] == 1 &&
-          neighbour.board.data[14] == 1 &&
-          neighbour.board.data[16] == 2 &&
-          neighbour.board.data[22] == 2)
-        {
-          i32 debug = 2;
-        }
         moves_add(scratch, &unchecked, &neighbour);
         hmt_insert_get(&seen_states, neighbour_key, i32, scratch);
       }
@@ -309,6 +362,84 @@ Moves FindMoves(Arena* a, GameState game)
   }
 
   return res;
+}
+
+
+Solution FindSolution(Arena* data_arena, Arena* scratch, GameState from_state)
+{
+  // find all moves, store in scratch arena
+  BoardGraph* all_moves = FindAllMoves(scratch, scratch, from_state);
+
+  // all distance between nodes are 1 move, so we can use BFS to find the first state where iswinning is true
+
+
+  Moves queue = { 0 };
+  HashMapTrie* visited = { 0 };
+
+  s8 init_key = s8_from_bytes((u8*)&from_state.board, sizeof(BoardState));
+  Move root_move = { 0 };
+  root_move.board = from_state.board;
+
+  Move* m = hmt_insert_get(&visited, init_key, Move, scratch);
+  *m = root_move;
+
+
+  moves_add(scratch, &queue, &root_move);
+  // TODO this will waste a lot of memory, since all allocated space are never reused
+  // it will make the array be the number of unique states. so the same sice as all_moves.
+  // But we might not need all that, since when an item is poped, we can in theory reuse the space.
+  isize index = 0;
+  while (index < queue.count )
+  {
+    // pop next move
+    Move v = queue.data[index];
+    index += 1;
+
+    if (IsWinningState(v.board))
+    {
+      // maybe store path len, then we can easy insert into an array
+      Moves res = moves_empty(data_arena, v.depth + 1);
+      res.data[v.depth] = v;
+      res.count += 1;
+
+      Move* parent = (Move*)hmt_get(&visited, v.from_key);
+      while (parent != 0)
+      {
+        res.count += 1;
+        res.data[parent->depth] = *parent;
+        parent = (Move*)hmt_get(&visited, parent->from_key);
+      }
+
+      if (res.capacity != res.count)
+      {
+        i32 debug = 2;
+      }
+      Solution sol = { 0 };
+      sol.initial_board = from_state.board;
+      sol.moves = res;
+
+      return sol;
+    }
+
+    s8 v_key = s8_from_bytes((u8*)&v.board, sizeof(BoardState));
+
+    Moves* neighbours = (Moves*)hmt_get(&all_moves, v_key);
+    for (i32 i = 0; i < neighbours->count; i++)
+    {
+      Move neighbour = neighbours->data[i];
+      s8 neighbour_key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
+      if (!hmt_contains(&visited, neighbour_key))
+      {
+        s8_append(scratch, &neighbour.from_key, v_key, 0, v_key.byte_len);        
+        neighbour.depth = v.depth + 1;
+
+        // add to seen and insert the move as data
+        Move* m = hmt_insert_get(&visited, neighbour_key, Move, scratch);        
+        *m = neighbour;
+        moves_add(scratch, &queue, &neighbour);
+      }
+    }
+  }
 }
 
 void UpdateGameToBoard(GameState* game, BoardState board)
@@ -360,8 +491,6 @@ void AddBrick(GameState* game, i32 left_col, i32 top_row, i32 len, DIRECTION dir
 
   UpdateBoard(game);
 }
-
-
 
 b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col) {
   b32 valid = 1;
@@ -516,16 +645,10 @@ void DrawBoard(GameState game, MovingBrick moving_brick)
 
 }
 
-b32 IsWinningState(Bricks bricks)
+b32 IsWinningState(BoardState board)
 {
-  if (bricks.count == 0)
-  {
-    return 0;
-  }
-
-  return bricks.data[0].left_col == 4;
+  return board.data[17] == 1;
 }
-
 
 Rectangle TileRect(i32 row, i32 col, i32 horizontal_tile, i32 vertical_tiles) {
   i32 base_x = (i32)base_anchor.x;
