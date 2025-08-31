@@ -51,6 +51,7 @@ typedef struct {
 typedef HashMapTrie BoardGraph;// key = boardstate wrapped in s8, value is pointer to array of Move we can access from here 
 
 
+
 typedef struct {
   BoardState board;
   u8 brick_id;
@@ -73,3 +74,9 @@ typedef struct {
   Moves moves;
   isize current_index;
 } Solution;
+
+typedef struct {
+  Solution longest_puzzle;
+  BoardGraph* all_moves;
+} AllMoves;
+

@@ -36,7 +36,7 @@ Rectangle TileRect(i32 col, i32 row, i32 horizontal_tile, i32 vertical_tiles);
 Moves FindMoves(Arena* a, GameState game);
 void UpdateGameToBoard(GameState* game, BoardState board);
 
-BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game);
+AllMoves FindAllMoves(Arena* data_arena, Arena* scratch, GameState game);
 
 Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state);
 
@@ -51,14 +51,14 @@ void ResetBricks(GameState* game) {
 
   // TARGET PIECE
   AddBrick(game, 1, 2, 2, HORIZONTAL, GREEN);
-  AddBrick(game, 4, 2, 2, VERTICAL, BLUE);
-  AddBrick(game, 4, 4, 2, VERTICAL, BLUE);
+ AddBrick(game, 4, 2, 2, VERTICAL, BLUE);
+ // AddBrick(game, 4, 4, 2, VERTICAL, BLUE);
 
-  AddBrick(game, 1, 1, 4, HORIZONTAL, GRAY);
-  AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);
+  //AddBrick(game, 1, 1, 4, HORIZONTAL, GRAY);
+//  AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);
 }
 
-void ResetBricks1(GameState* game) {
+void ResetBricks2(GameState* game) {
 
   memset(&game->board, 0, sizeof(game->board));
   memset(&game->bricks, 0, sizeof(game->bricks));
@@ -140,7 +140,7 @@ int main(void)
   ResetBricks(&game);
   // Main game loop
   Moves available_moves = { 0 };
-  HashMapTrie* all_moves = { 0 };
+  AllMoves all_moves = { 0 };
   Solution solution = { 0 };
   while (!WindowShouldClose())        // Detect window close button or ESC key
   {
@@ -160,7 +160,7 @@ int main(void)
       // Reset moves arena, array and table
       available_moves.count = 0;
       available_moves.capacity = 0;
-      all_moves = 0 ;
+      all_moves.all_moves = 0 ;
       arena_reset(&moves_arena);
       all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
     }
@@ -170,10 +170,10 @@ int main(void)
       // Reset moves arena, array and table
       available_moves.count = 0;
       available_moves.capacity = 0;
-      all_moves = 0;
+      all_moves.all_moves = 0;
       arena_reset(&moves_arena);
       all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
-      solution = FindSolution(&moves_arena, &frame_arena, all_moves, game.board);
+      solution = FindSolution(&moves_arena, &frame_arena, all_moves.all_moves, game.board);
     }
 
     if (IsWinningState(game.board))
@@ -182,12 +182,13 @@ int main(void)
       {
         available_moves.count = 0;
         available_moves.capacity = 0;
-        all_moves = 0;
+        all_moves.all_moves = 0;
         arena_reset(&moves_arena);
         all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
 
-       solution = FindLongestPuzzle(&moves_arena, &frame_arena, all_moves, game.board);
-       UpdateGameToBoard(&game, solution.initial_board);
+        solution = all_moves.longest_puzzle;
+        //solution = FindLongestPuzzle(&moves_arena, &frame_arena, all_moves.all_moves, game.board);
+        UpdateGameToBoard(&game, solution.initial_board);
       }
     }
     if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Find moves"))
@@ -195,12 +196,12 @@ int main(void)
       // Reset moves arena, array and table
       available_moves.count = 0;
       available_moves.capacity = 0;
-      all_moves = 0;
+      all_moves.all_moves = 0;
       available_moves = FindMoves(&moves_arena, game);
     }
 
     s8 key = s8_from_bytes((u8*)&game.board, sizeof(BoardState));
-    Moves* moves = (Moves*) hmt_get(&all_moves, key);
+    Moves* moves = (Moves*) hmt_get(&all_moves.all_moves, key);
 
     if(solution.moves.data != 0)
     { 
@@ -297,16 +298,159 @@ void hm_print(s8 key, void* val)
 
 }
 
-BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
+AllMoves FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
+{
+  HashMapTrie* res = { 0 };
+  HashMapTrie* solutions = { 0 }; // key board wrapped in s8, value solution
+
+  i32 count = 0;
+  i32 count2 = 0;
+  HashMapTrie* seen_states = { 0 };
+  Moves unchecked = { 0 };
+
+  // Setup a copy of the game state to modify
+  GameState tmpGame = { 0 };
+  for (i32 i = 0; i < game.bricks.count; i++)
+  {
+    Brick b = game.bricks.data[i];
+    AddBrick(&tmpGame, b.left_col, b.top_row, b.len, b.dir, b.color);
+  }
+
+
+  // add current game state as first unchecked state
+  Move m = { 0 };
+  m.board = game.board;
+  moves_add(scratch, &unchecked, &m);
+
+  // add current game state as seen, so we don't readd it to unchecked queue
+  s8 start_key = s8_from_bytes((u8*)&game.board, sizeof(BoardState));
+  hmt_insert_get(&seen_states, start_key, i32, scratch);
+
+  b32 find_solutions = IsWinningState(tmpGame.board);
+  if (find_solutions)
+  {
+    Solution* sol = hmt_insert_get(&solutions, start_key, Solution, scratch);
+    sol->initial_board = tmpGame.board;
+  }
+
+  Solution longest_solution = { 0 };
+  // this does waste memory, since it does not reuse the popped array locations.
+  // impl a better fifo queue
+  isize index = 0;
+  while (index < unchecked.count)
+  {
+    // pop next move like a fifo queue.
+    Move next = unchecked.data[index];
+    index += 1;
+
+    s8 next_key = s8_from_bytes((u8*)&next.board, sizeof(BoardState));
+    Moves* moves = hmt_insert_get(&res, next_key, Moves, data_arena);
+    count += 1;
+
+
+    UpdateGameToBoard(&tmpGame, next.board);
+    Moves available_moves = FindMoves(scratch, tmpGame);
+    for (i32 i = 0; i < available_moves.count; i++)
+    {
+      Move neighbour = available_moves.data[i];
+      s8 neighbour_key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
+      moves_add(data_arena, moves, &neighbour);
+
+      if (!hmt_contains(&seen_states, neighbour_key))
+      {
+        moves_add(scratch, &unchecked, &neighbour);
+        hmt_insert_get(&seen_states, neighbour_key, i32, scratch);
+        count2 += 1;
+      }
+    }
+
+    if (find_solutions)
+    {
+      for (i32 i = 0; i < available_moves.count; i++)
+      {
+        Move neighbour = available_moves.data[i];
+        s8 neighbour_key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
+
+        // look up a solution to neighbours.
+        // if we are on the initial state, we alreadry have the shortest 0 move solution
+        // if we are not on the first move, one of the available moves should get us a solution
+        Solution* neighbour_sol = hmt_get(&solutions, neighbour_key);
+
+        Solution* our_sol = hmt_insert_get(&solutions, next_key, Solution, scratch);
+        Solution actual_sol = FindSolution(scratch, scratch, res, next.board);
+
+        if (actual_sol.moves.count < our_sol->moves.count || our_sol->moves.count == 0)
+        {
+          *our_sol = actual_sol;
+        }
+        if (our_sol->moves.count > longest_solution.moves.count)
+        {
+          longest_solution = *our_sol;
+        }
+        if (neighbour_sol != 0)
+        {
+
+          // this is not enough to ensure that what we produce are solutions.
+          // if we move a brick out of the way of the green, we are making the solution shorter
+          // not longer. Even though it is further away in the state domain graph
+
+          // maybe call find solution on the states? And have it take solutions hashmap for lookup.
+          // right now we assume that a move is a new solution, but it is not always a 
+
+          // calling find solution requires all moves. We kinda do have that, but not for moves futher away, all the moves we have
+          // at a given point should be enough to determine if a move was making the solution longer or shorter.
+
+          //TODO
+
+          // TOD maybe reset scratch afte we copied the moves we need.
+          
+
+          //// 0 moves count means a new solution, just created
+          //// if our solution +1 is less than or eq to neighbour, we have a better or equal solution
+          //if (our_sol->moves.count == 0 || our_sol->moves.count >= neighbour_sol->moves.count)
+          //{
+          //  // no solution or worse
+          //  our_sol->initial_board = next.board;
+          //  // clear moves that has been added
+          //  our_sol->moves.count = 0;
+          //  // add this available_move as first move
+          //  moves_add(scratch, &our_sol->moves, &neighbour);
+          //  // add all of other solutions move
+          //  for (i32 j = 0; j < neighbour_sol->moves.count; j++)
+          //  {
+          //    moves_add(scratch, &our_sol->moves, &neighbour_sol->moves.data[j]);
+          //  }
+          //}
+
+          
+        }
+      }
+    }
+  }
+
+  AllMoves all_m = { 0 };
+  all_m.all_moves = res;
+  // copy longest solution into result, in data arena and not scratch
+  all_m.longest_puzzle.initial_board = longest_solution.initial_board;
+  all_m.longest_puzzle.moves.count = 0;  
+  for (i32 j = 0; j < longest_solution.moves.count; j++)
+  {
+    moves_add(data_arena, &all_m.longest_puzzle.moves, &longest_solution.moves.data[j]);
+  }
+  return all_m;
+}
+
+
+AllMoves FindAllMoves2(Arena* data_arena, Arena* scratch, GameState game)
 {
   HashMapTrie* res = { 0 };
 
   i32 count = 0;
   i32 count2 = 0;
-  HashMapTrie *seen_states = { 0 };    
+  HashMapTrie* seen_states = { 0 };
   Moves unchecked = { 0 };
-
   GameState tmpGame = { 0 };
+
   for (i32 i = 0; i < game.bricks.count; i++)
   {
     Brick b = game.bricks.data[i];
@@ -321,12 +465,13 @@ BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
   // add current game state as seen, so we don't readd it to unchecked queue
   s8 start_key = s8_from_bytes((u8*)&game.board, sizeof(BoardState));
   hmt_insert_get(&seen_states, start_key, i32, scratch);
+  isize index = 0;
 
-  while (unchecked.count > 0)
+  while (index < unchecked.count)
   {
-    // pop next move
-    Move next = unchecked.data[unchecked.count - 1];
-    unchecked.count--;
+    // pop next move like a fifo queue.
+    Move next = unchecked.data[index];
+    index += 1;
 
     s8 next_key = s8_from_bytes((u8*)&next.board, sizeof(BoardState));
     Moves* moves = hmt_insert_get(&res, next_key, Moves, data_arena);
@@ -336,20 +481,23 @@ BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
     Moves available_moves = FindMoves(scratch, tmpGame);
     for (i32 i = 0; i < available_moves.count; i++)
     {
-      Move neighbour = available_moves.data[i];     
-      moves_add(data_arena, moves, &neighbour);      
-      
+      Move neighbour = available_moves.data[i];
+      moves_add(data_arena, moves, &neighbour);
+
       s8 neighbour_key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
-      
+
       if (!hmt_contains(&seen_states, neighbour_key))
-      { 
+      {
         moves_add(scratch, &unchecked, &neighbour);
         hmt_insert_get(&seen_states, neighbour_key, i32, scratch);
+        count2 += 1;
       }
     }
   }
 
-  return res;
+  AllMoves am = { 0 };
+  am.all_moves = res;
+  return am;
 
 }
 
@@ -421,7 +569,6 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, 
 
     if (IsWinningState(v.board))
     {
-      // maybe store path len, then we can easy insert into an array
       Moves res = moves_empty(data_arena, v.depth + 1);
       res.data[v.depth] = v;
       res.count += 1;
@@ -448,6 +595,11 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, 
     s8 v_key = s8_from_bytes((u8*)&v.board, sizeof(BoardState));
 
     Moves* neighbours = (Moves*)hmt_get(&all_moves, v_key);
+
+    if (neighbours == 0)
+    {
+      continue;
+    }
     for (i32 i = 0; i < neighbours->count; i++)
     {
       Move neighbour = neighbours->data[i];
@@ -469,6 +621,14 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, 
   sol.current_index = -1;
   return sol;
 }
+
+
+Solution FindLongestPuzzle1(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state) {
+
+  // do the same as find all moves. but breath first, and keep track of solutions, so we can do lookup
+
+}
+
 
 Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state) {
 
