@@ -204,7 +204,14 @@ int main(void)
         }
       }
 
-      if (GuiButton(rect(400, 10, 80, 40), "Solution"))
+      s8 text = s8_from_literal("Solution ");
+
+      s8 number_s = s8_isize_to_s8(&frame_arena, solution.moves.count);
+      s8_append(&frame_arena, &text, number_s, 0, number_s.byte_len);
+
+      s8 zero = s8_from_c_str("\0");
+      s8_append(&frame_arena, &text, zero, 0, 1);
+      if (GuiButton(rect(400, 10, 80, 40), text.data))
       {
         solution.current_index = solution.moves.count - 1;
         UpdateGameToBoard(&game, solution.moves.data[solution.current_index].board);
@@ -214,7 +221,7 @@ int main(void)
     {
       for (i32 i = 0; i < moves->count; i++)
       {
-        s8 text = button_title(&frame_arena, moves->data[i]);
+          s8 text = button_title(&frame_arena, moves->data[i]);
         if (GuiButton(rect(10, 55 + 5 * i + 40 * i, 80, 40), text.data))
         {
           UpdateGameToBoard(&game, moves->data[i].board);

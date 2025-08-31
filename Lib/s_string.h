@@ -5,22 +5,6 @@
 
 
 typedef struct {
-  c16* data;
-  isize byte_len;
-  isize capacity;
-} s16;
-
-
-#define s16_from_literal(s) (s16){s, sizeof(s)-1, sizeof(s)}
-
-s16 s16_from_c_str(c16* lit_str);
-
-s16 s16_empty_raw(c16* buffer, isize capacity);
-
-s16 s16_empty(Arena* arena, isize capacity);
-
-
-typedef struct {
   u8* data;
   isize byte_len;
   isize capacity;
@@ -37,6 +21,8 @@ s8 s8_empty(Arena* arena, isize capacity);
 s8 s8_from_c_str(u8* lit_str);
 
 s8 s8_from_bytes(u8* bytes, isize count);
+
+s8 s8_isize_to_s8(Arena* arena, isize num);
 
 /// <summary>
 /// Find char (chr) in s -1 on not found
@@ -136,3 +122,22 @@ b32 s8_try_parse_u8(s8 s, u8* output);
 /// <param name="output"></param>
 /// <returns></returns>
 b32 s8_try_parse_f64(s8 s, f64* output);
+
+
+
+
+typedef struct {
+  c16* data;
+  isize byte_len;
+  isize capacity;
+} s16;
+
+
+#define s16_from_literal(s) (s16){s, sizeof(s)-1, sizeof(s)}
+
+s16 s16_from_c_str(c16* lit_str);
+
+s16 s16_empty_raw(c16* buffer, isize capacity);
+
+s16 s16_empty(Arena* arena, isize capacity);
+

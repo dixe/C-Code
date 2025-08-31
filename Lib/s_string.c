@@ -1,34 +1,7 @@
 #include "s_string.h"
 #include "arena.h"
 #include <string.h> // for strlen
-
-s16 s16_from_c_str(c16* lit_str) {
-  s16 s;
-  s.data = lit_str;
-  s.byte_len = wcslen(lit_str);
-  s.capacity = s.byte_len;
-  return s;
-}
-
-s16 s16_empty_raw(c16* buffer, isize capacity)
-{
-  s16 s;
-  s.data = buffer;
-  s.byte_len = 0;
-  s.capacity = capacity;
-  return s;
-}
-
-s16 s16_empty(Arena* arena, isize capacity)
-{
-  c16* buffer = arena_alloc(arena, c16, capacity);
-  
-  s16 s;
-  s.data = buffer;
-  s.byte_len = 0;
-  s.capacity = capacity;
-  return s;
-}
+#include <math.h>
 
 
 s8 s8_from_c_str(u8* lit_str) {  
@@ -70,6 +43,29 @@ s8 s8_empty(Arena* arena, isize capacity)
   u8* buffer = arena_alloc(arena, u8, capacity);
   s.data = buffer;
   return s;
+}
+
+
+s8 s8_isize_to_s8(Arena* arena, isize num)
+{  
+  b32 negative = num < 0;
+  if (negative)
+  {
+    num = -num;
+  }
+
+  isize chars = floor(log10(num)) + 1;
+  s8 res = s8_empty(arena, chars);
+
+  isize index = chars - 1;
+  while (num > 0)
+  {
+    res.data[index] = num % 10 + '0';
+    num = num / 10;
+    index -= 1;
+  }
+  res.byte_len = chars;
+  return res;
 }
 
 isize s8_find_char(isize start_index, s8 s, u8 chr) {
@@ -297,4 +293,34 @@ b32 s8_try_parse_f64(s8 s, f64* output)
 
   return parsed;
 
+}
+
+
+
+s16 s16_from_c_str(c16* lit_str) {
+  s16 s;
+  s.data = lit_str;
+  s.byte_len = wcslen(lit_str);
+  s.capacity = s.byte_len;
+  return s;
+}
+
+s16 s16_empty_raw(c16* buffer, isize capacity)
+{
+  s16 s;
+  s.data = buffer;
+  s.byte_len = 0;
+  s.capacity = capacity;
+  return s;
+}
+
+s16 s16_empty(Arena* arena, isize capacity)
+{
+  c16* buffer = arena_alloc(arena, c16, capacity);
+
+  s16 s;
+  s.data = buffer;
+  s.byte_len = 0;
+  s.capacity = capacity;
+  return s;
 }
