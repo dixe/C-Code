@@ -1,11 +1,19 @@
-﻿#include "raylib.h"
+﻿#pragma warning(push, 0)
+#pragma warning (disable : 4996 6031 6387 6029) // ignore fopen insecure in raylib
+#include "raylib.h"
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
+#pragma warning(pop)
+
 #include "arena.h"
 #include "hashmap.h"
 #include "dyn_array.h"
+#include "s_string.h"
+#include "io.h"
+#include "types.h"
+#include "containers.h"
 
-#pragma warning (disable : 4996) // ignore fopen insecure in raylib
-#define RAYGUI_IMPLEMENTATION
-#include "raygui.h"
+
 
 const i32 screenWidth = 1200;
 const i32 screenHeight = 800;
@@ -13,59 +21,6 @@ i32 tileW = 80;
 i32 brick_padding = 3;
 
 
-
-
-#define GRIDW 6
-
-// Bricks are represented by an unique id. All bricks are defined by their anchor in the top/left
-// Bricks are 1 tile wide and X tile long.
-// Bricks can either move vertical or horizontal
-typedef enum  {
-  HORIZONTAL,
-  VERTICAL
-} DIRECTION;
-
-typedef struct {
-  u8 brick_id;
-  Vector2 starting_pos;
-  Vector2 current_pos;
-} MovingBrick;
-
-typedef struct {
-  u8 brick_id;
-  i32 top_row;
-  i32 left_col;
-  Color color;
-  DIRECTION dir;
-  i32 len;
-} Brick;
-
-typedef struct {
-  Brick data[GRIDW * GRIDW];
-  isize count;
-} Bricks;
-
-
-typedef struct
-{
-  u8 data[GRIDW * GRIDW];
-} BoardState;
-
-typedef struct {
-  Bricks bricks;
-  BoardState board;
-} GameState;
-
-
-typedef struct {
-  BoardState board;
-  u8 brick_id;
-  i32 new_row;
-  i32 new_col;
-} Move;
-
-// define moves array type
-ARR_DEFARRAY(Move, Moves)
 
 
 i32 anchor_width = 14;
@@ -81,9 +36,53 @@ Rectangle TileRect(i32 col, i32 row, i32 horizontal_tile, i32 vertical_tiles);
 Moves FindMoves(Arena* a, GameState game);
 void UpdateGameToBoard(GameState* game, BoardState board);
 
+BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game);
 
+b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col);
 Vector2 base_anchor;
+void ResetBricks(GameState* game) { 
+  
+  memset(&game->board, 0, sizeof(game->board));
+  memset(&game->bricks, 0, sizeof(game->bricks));
 
+  // TARGET PIECE
+  AddBrick(game, 1, 2, 2, HORIZONTAL, GREEN);
+  AddBrick(game, 4, 2, 2, VERTICAL, BLUE);
+  /*AddBrick(game, 4, 4, 2, VERTICAL, BLUE);
+
+  AddBrick(game, 1, 1, 4, HORIZONTAL, GRAY);
+  AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);*/
+}
+
+
+Rectangle rect(i32 x, i32 y, i32 w, i32 h)
+{
+  return (Rectangle) { (f32)x, (f32)y, (f32)w, (f32)h };
+}
+s8 button_title(Arena *arena, Move move) {
+
+  s8 res = s8_empty(arena, 8); 
+  res.data[0] = move.brick_id + 48;
+  res.byte_len += 1;
+  if (move.horizontal == 1)
+  {
+    s8_append(arena, &res, s8_from_literal(" Right"), 0, 6);
+  }
+  else if (move.horizontal == -1)
+  {
+    s8_append(arena, &res, s8_from_literal(" Left"), 0, 5);
+  }
+  else if (move.vertical == 1)
+  {
+    s8_append(arena, &res, s8_from_literal(" Down"), 0, 5);
+  }
+  else if (move.vertical == -1)
+  {
+    s8_append(arena, &res, s8_from_literal(" Up"), 0, 3);
+  }
+  res.data[res.byte_len] = 0;
+  return res;
+}
 
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -104,20 +103,14 @@ int main(void)
   //--------------------------------------------------------------------------------------
 
   Arena game_arena = arena_create(1024);
-
-
   Arena frame_arena = arena_create(1024);
   
   GameState game = { 0 };
   
-  // TARGET PIECE
-  AddBrick(&game, 1, 2, 2, HORIZONTAL, GREEN);
-  AddBrick(&game, 0, 0, 2, HORIZONTAL, BLUE);
-
-  AddBrick(&game, 0, 1, 4, HORIZONTAL, GRAY);
-  AddBrick(&game, 0, 2, 2, VERTICAL, YELLOW);
+  ResetBricks(&game);
   // Main game loop
   Moves available_moves = { 0 };
+  HashMapTrie* all_moves = { 0 };
   while (!WindowShouldClose())        // Detect window close button or ESC key
   {
     Vector2 mouse = GetMousePosition();
@@ -125,27 +118,50 @@ int main(void)
     moving_grid = MoveGrid(mouse, moving_grid);
     moving_brick = MoveBrick(mouse, &game, moving_brick);
 
-    if (GuiButton((Rectangle) { 10, 10, 80, 50 }, "Find moves"))
-    { 
-      available_moves = FindMoves(&game_arena, game);
 
-      Move m = { 0 };
-      m.board = game.board;
-      m.brick_id = game.bricks.data[0].brick_id;
-      m.new_col = game.bricks.data[0].left_col;
-      m.new_row = game.bricks.data[0].top_row;
+    if (GuiButton((Rectangle) { 100, 10, 80, 40 }, "Reset bricks"))
+    {
+      ResetBricks(&game);
+    } 
+    
+    if (GuiButton((Rectangle) { 100, 55, 80, 40 }, "Find all moves"))
+    {
+      all_moves = FindAllMoves(&game_arena, &frame_arena, game);
 
-      arr_add(&game_arena, available_moves, game.board, Move);
     }
 
-    for (i32 i = 0; i < available_moves.count; i++)
+    if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Find moves"))
+    { 
+      //available_moves = FindAllMoves(&game_arena, &frame_arena, game);
+      available_moves = FindMoves(&game_arena, game);      
+    }
+
+    s8 key = s8_from_bytes((u8*)&game.board, sizeof(BoardState));
+    Moves* moves = (Moves*) hmt_get(&all_moves, key);
+
+    if (moves != 0)
     {
-      if (GuiButton((Rectangle) { 10, 55 + 5 + 40 * i, 80, 40 }, "Show move"))
+      for (i32 i = 0; i < moves->count; i++)
       {
-        UpdateGameToBoard(&game, available_moves.data[i].board);
+        s8 text = button_title(&frame_arena, moves->data[i]);
+        if (GuiButton(rect(10, 55 + 5 * i + 40 * i, 80, 40), text.data))
+        {
+          UpdateGameToBoard(&game, moves->data[i].board);
+        }
+      }
+    }
+    else {
+      for (i32 i = 0; i < available_moves.count; i++)
+      {
+
+        if (GuiButton(rect(10, 55 + 5 + 40 * i, 80, 40 ), "Show move"))
+        {
+          UpdateGameToBoard(&game, available_moves.data[i].board);
+        }
       }
     }
 
+  
 
     // Draw
     //----------------------------------------------------------------------------------
@@ -155,10 +171,12 @@ int main(void)
 
     if (IsWinningState(game.bricks))
     {
-      DrawText("SUCCESS", 400, 40, 30, GREEN);
+      DrawText("GREAT SUCCESS", 400, 40, 30, GREEN);
     }
 
     EndDrawing();
+
+    arena_reset(&frame_arena);
 
   }
 
@@ -166,12 +184,78 @@ int main(void)
   return 0;
 }
 
+void hm_print(s8 key, void* val)
+{
+  for (i32 i = 0; i < key.byte_len; i++)
+  {
+    key.data[i] += 48;
+  }
+  s8_println(key);
+  for (i32 i = 0; i < key.byte_len; i++)
+  {
+    key.data[i] -= 48;
+  }
 
+}
+
+BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
+{
+  HashMapTrie* res = { 0 };
+
+  i32 count = 0;
+  HashMapTrie *checked_states = { 0 };    
+  Moves unchecked = { 0 };
+
+
+  GameState tmpGame = { 0 };
+  for (i32 i = 0; i < game.bricks.count; i++)
+  {
+    Brick b = game.bricks.data[i];
+    AddBrick(&tmpGame, b.left_col, b.top_row, b.len, b.dir, b.color);
+  }
+
+  // add current game state as first unchecked state
+  Move m = { 0 };
+  m.board = game.board;
+  moves_add(scratch, &unchecked, &m);
+
+  while (unchecked.count > 0)
+  {
+    // pop next move
+    Move next = unchecked.data[unchecked.count - 1];
+   
+    unchecked.count--;
+    s8 key = s8_from_bytes((u8*)&next.board, sizeof(BoardState));
+    u64 h = hash(key);
+  
+    hmt_insert_get(&checked_states, key, i32, scratch);
+
+    Moves* moves = hmt_insert_get(&res, key, Moves, data_arena);
+    count += 1;
+
+    UpdateGameToBoard(&tmpGame, next.board);
+    Moves available_moves = FindMoves(scratch, tmpGame);
+    for (i32 i = 0; i < available_moves.count; i++)
+    {
+      Move neighbour = available_moves.data[i];     
+
+      moves_add(data_arena, moves, &neighbour);      
+
+      key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
+      if (!hmt_contains(&checked_states, key))
+      { 
+        moves_add(scratch, &unchecked, &neighbour);
+      }
+    }
+  }
+
+  return res;
+
+}
 
 Moves FindMoves(Arena* a, GameState game)
 {
   Moves res = { 0 };
-  res.data_size = sizeof(Move);
 
   for (i32 i = 0; i < game.bricks.count; i++)
   {    
@@ -191,14 +275,17 @@ Moves FindMoves(Arena* a, GameState game)
         new_move_state.bricks.data[i].top_row = new_row;;
         new_move_state.bricks.data[i].left_col = new_col;
         UpdateBoard(&new_move_state);       
-        
+
+        if (res.count >= res.capacity)
+        {
+          // realloc
+        }
         Move m = { 0 };
         m.board = new_move_state.board;
-        m.brick_id = new_move_state.bricks.data[i].brick_id;
-        m.new_col = new_col;
-        m.new_row = new_row;
-
-        arr_add(a, res, m, Move);
+        m.brick_id = b.brick_id;
+        m.horizontal = new_col - b.left_col;
+        m.vertical = new_row - b.top_row;
+        moves_add(a, &res, &m);
       }
     }
   }
@@ -270,7 +357,7 @@ b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col) {
     i32 row = new_row + (VERTICAL == b.dir) * j;
     i32 col = new_col + (HORIZONTAL == b.dir) * j;
     u8 tile_id = game->board.data[row * GRIDW + col];
-    valid &= (row < GRIDW&& row >= 0 && col >= 0 && row < GRIDW) && tile_id == 0 || tile_id == b.brick_id;
+    valid &= (row < GRIDW&& row >= 0 && col >= 0 && col < GRIDW) && tile_id == 0 || tile_id == b.brick_id;
   }
   return valid;
 }
@@ -289,10 +376,10 @@ MovingBrick MoveBrick(Vector2 mouse, GameState* game, MovingBrick moving_brick) 
       {
         if (game->bricks.data[i].brick_id == moving_brick.brick_id)
         {
-          i32 mouse_start_col = (moving_brick.starting_pos.x - base_anchor.x) / tileW;
-          i32 mouse_end_col= (moving_brick.current_pos.x - base_anchor.x) / tileW;
-          i32 mouse_start_row = (moving_brick.starting_pos.y - base_anchor.y) / tileW;
-          i32 mouse_end_row = (moving_brick.current_pos.y - base_anchor.y) / tileW;
+          i32 mouse_start_col = (i32)(moving_brick.starting_pos.x - base_anchor.x) / tileW;
+          i32 mouse_end_col= (i32)(moving_brick.current_pos.x - base_anchor.x) / tileW;
+          i32 mouse_start_row = (i32)(moving_brick.starting_pos.y - base_anchor.y) / tileW;
+          i32 mouse_end_row = (i32)(moving_brick.current_pos.y - base_anchor.y) / tileW;
 
           // validate move before assignment
           i32 new_col = game->bricks.data[i].left_col + (game->bricks.data[i].dir == HORIZONTAL) * (mouse_end_col - mouse_start_col);
@@ -347,7 +434,7 @@ b32 MoveGrid(Vector2 mouse, b32 resizing) {
   else
   {
     // Check if we're moving_grid
-    Rectangle anchor = (Rectangle){ base_anchor.x - anchor_width, base_anchor.y - anchor_width, anchor_width, anchor_width };
+    Rectangle anchor = rect((i32)base_anchor.x - anchor_width, (i32)base_anchor.y - anchor_width, anchor_width, anchor_width );
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, anchor)) resizing = true;
   }
   return resizing;
@@ -358,11 +445,11 @@ void DrawBoard(GameState game, MovingBrick moving_brick)
 
   // draw base_anchor
 
-  DrawRectangle(base_anchor.x - anchor_width, base_anchor.y - anchor_width, anchor_width, anchor_width, MAROON);
+  DrawRectangle((i32)base_anchor.x - anchor_width, (i32)base_anchor.y - anchor_width, anchor_width, anchor_width, MAROON);
 
   // draw grid
-  i32 baseX = base_anchor.x;
-  i32 baseY = base_anchor.y;
+  i32 baseX = (i32)base_anchor.x;
+  i32 baseY = (i32)base_anchor.y;
   // assume square grid
   for (i32 i = 0; i <= GRIDW; i++)
   {
@@ -379,17 +466,17 @@ void DrawBoard(GameState game, MovingBrick moving_brick)
   // draw bricks
   for (i32 i = 0; i < game.bricks.count; i++)
   {
-    Rectangle br = BrickRect(game.bricks.data[i], baseX, baseY, tileW, brick_padding);
+    Rectangle br = BrickRect(game.bricks.data[i]);
 
     i32 x_offset = 0;
     i32 y_offset = 0;
     if (moving_brick.brick_id == game.bricks.data[i].brick_id)
     {
-      x_offset = (game.bricks.data[i].dir == HORIZONTAL) * (moving_brick.current_pos.x - moving_brick.starting_pos.x);
-      y_offset = (game.bricks.data[i].dir == VERTICAL) * (moving_brick.current_pos.y - moving_brick.starting_pos.y);
+      x_offset = (game.bricks.data[i].dir == HORIZONTAL) * (i32)(moving_brick.current_pos.x - moving_brick.starting_pos.x);
+      y_offset = (game.bricks.data[i].dir == VERTICAL) * (i32)(moving_brick.current_pos.y - moving_brick.starting_pos.y);
     }
 
-    DrawRectangle(br.x + x_offset, br.y + y_offset, br.width, br.height, game.bricks.data[i].color);
+    DrawRectangle((i32)br.x + x_offset, (i32)br.y + y_offset, (i32)br.width, (i32)br.height, game.bricks.data[i].color);
   }
 
   for (i32 i = 0; i < GRIDW; i++)
@@ -401,7 +488,9 @@ void DrawBoard(GameState game, MovingBrick moving_brick)
       snprintf(str, 6, "%d", id);
       Rectangle tile_rect = TileRect(i, j, 1, 1);
       Color color = id == 0 ? WHITE : BLACK;
-      DrawText(str, tile_rect.x + tile_rect.width / 2 - 5, tile_rect.y + tile_rect.height / 2 - 5, 20, color);
+      i32 x = (i32)(tile_rect.x + tile_rect.width / 2 - 5);
+      i32 y = (i32)(tile_rect.y + tile_rect.height / 2 - 5);
+      DrawText(str, x, y, 20, color);
     }
   }
 
@@ -419,14 +508,14 @@ b32 IsWinningState(Bricks bricks)
 
 
 Rectangle TileRect(i32 row, i32 col, i32 horizontal_tile, i32 vertical_tiles) {
-  i32 base_x = base_anchor.x;
-  i32 base_y = base_anchor.y;
+  i32 base_x = (i32)base_anchor.x;
+  i32 base_y = (i32)base_anchor.y;
   i32 x = base_x + col * tileW + brick_padding;
   i32 y = base_y + row * tileW + brick_padding;
   i32 width = horizontal_tile * tileW; 
   i32 height = vertical_tiles * tileW; 
 
-  return (Rectangle) { x, y, width - brick_padding * 2, height - brick_padding * 2 };
+  return rect(x, y, width - brick_padding * 2, height - brick_padding * 2 );
 }
 
 Rectangle BrickRect(Brick b) {

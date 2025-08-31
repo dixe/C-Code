@@ -22,6 +22,8 @@ typedef struct HashMapTrie {
 } HashMapTrie;
 
 
+u64 hash(s8 s);
+
 /// <summary>
 /// return pointer to value if key is in map, 0 if not
 /// </summary>

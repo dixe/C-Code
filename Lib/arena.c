@@ -1,6 +1,9 @@
 #include "arena.h"
 #include <basetsd.h>
+#include <stdlib.h>
 #include <memory.h>
+
+
 #ifndef ARENA_RESERVE_SIZE
 #define ARENA_RESERVE_SIZE  ((i64)1) << 40
 #endif 
@@ -26,8 +29,7 @@ Arena arena_create(isize bytes)
   u8* data = (u8*)VirtualAlloc(reserved, bytes, MEM_COMMIT, PAGE_READWRITE);
   
   if (data == NULL)
-  {    
-    u64 errNo = GetLastError();
+  { 
     exit(30);  
     return a;
   }
@@ -72,7 +74,6 @@ void* alloc(Arena* arena, ptrdiff_t objSize, ptrdiff_t align, ptrdiff_t count, i
     if (new_pointer == NULL)
     {
       // oom
-      u64 errNo = GetLastError();
       exit(32);
       return NULL;
     }

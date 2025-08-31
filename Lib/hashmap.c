@@ -1,5 +1,6 @@
 #include "hashmap.h"
 #include "s_string.h"
+#include <string.h>  // For memcpy
 
 u64 hash(s8 s)
 {
@@ -26,6 +27,11 @@ b32 hmt_contains(HashMapTrie** map, s8 key)
 
 void* _hmt_upsert(HashMapTrie**map, s8 key, isize val_size, Arena* a)
 {
+  if (key.data[0] > 5)
+  {
+    i32 debug = 2;
+  }
+
   u64 h = hash(key);  
   for (; *map; h <<= HASHMAPTRIE_POT)
   {    
@@ -52,7 +58,7 @@ void* _hmt_upsert(HashMapTrie**map, s8 key, isize val_size, Arena* a)
   else {
     val_size = 0;
   }
-  memset(new_map, 0, sizeof(HashMapTrie) + val_size);
+  memset(new_map, 0, sizeof(HashMapTrie) + val_size - sizeof(void*));
   (*map) = new_map;
   // make a copy of the key into the hashmap arena
   (*map)->key = s8_empty(a, key.byte_len);

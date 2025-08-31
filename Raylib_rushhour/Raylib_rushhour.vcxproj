@@ -117,6 +117,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>E:\repos\C-Code\Lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ExternalWarningLevel>TurnOffAllWarnings</ExternalWarningLevel>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -142,13 +144,22 @@
   <ItemGroup>
     <ClCompile Include="..\Lib\arena.c" />
     <ClCompile Include="..\Lib\dyn_array.c" />
+    <ClCompile Include="..\Lib\hashmap.c" />
+    <ClCompile Include="..\Lib\io.c" />
+    <ClCompile Include="..\Lib\s_string.c" />
+    <ClCompile Include="containers.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h" />
     <ClInclude Include="..\Lib\custom_types.h" />
     <ClInclude Include="..\Lib\dyn_array.h" />
+    <ClInclude Include="..\Lib\hashmap.h" />
+    <ClInclude Include="..\Lib\io.h" />
+    <ClInclude Include="..\Lib\s_string.h" />
+    <ClInclude Include="containers.h" />
     <ClInclude Include="raygui.h" />
+    <ClInclude Include="types.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

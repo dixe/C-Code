@@ -8,20 +8,22 @@ typedef struct {
   isize count;
   isize capacity;
   isize data_size;
-  void* data;
 } ArrayHeader;
 
 
-#define ARR_DEFARRAY(t, n) typedef struct {\
-isize count; \
-isize capacity; \
-isize data_size; \
-t* data; \
-} n;
+//#define ARR_DEFARRAY(t, n) typedef struct {\
+//isize count; \
+//isize capacity; \
+//isize data_size; \
+//t* data; \
+//} n;
 
-void arr_add_intern(Arena* a, ArrayHeader* arr, void* new_data, isize new_data_size);
 
-#define arr_add(a, arr, d, t) arr_add_intern(a, &arr, &d, sizeof(t))
+
+void* arr_grow(Arena* a, isize count, isize* capacity, isize data_size, void* data_ptr);
+//void arr_add_intern(Arena* a, ArrayHeader* arr, void* new_data, isize new_data_size);
+
+//#define arr_add(arena, arr, data, data_type) arr_add_intern(arena, &arr, &data, sizeof(data_type))
 
 /// <summary>
 /// Concat s1 and s2 into a new string allocated in arena

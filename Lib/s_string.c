@@ -1,9 +1,7 @@
 #include "s_string.h"
 #include "arena.h"
+#include <string.h> // for strlen
 
-size_t wcslen(
-  const wchar_t* str
-);
 s16 s16_from_c_str(c16* lit_str) {
   s16 s;
   s.data = lit_str;
@@ -191,7 +189,7 @@ b32 s8_try_parse_u8(s8 s, u8* output)
   {
     return 0;
   }
-  output = (u8)d;
+  *output = (u8)d;
   return 1; 
 }
 

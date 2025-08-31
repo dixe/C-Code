@@ -39,7 +39,6 @@ Texture2D line_texture;
 
 void calc_line(Arena* line_arena, Image line_image) {
   Imagemat line1 = create_line_image(line_arena, 0, 1);
-  i32 a = 2;
   line_image.data = line1.data;
   line_texture = LoadTextureFromImage(line_image);
 }
@@ -184,10 +183,7 @@ Imagemat create_line_image(Arena* a, i32 nail1, i32 nail2)
       Vector2 pixel_pos = { 0 };
       pixel_pos.x = i;
       pixel_pos.y = j;
-      if (i == 300)
-      {
-        i32 debug = 2;
-      }
+      
       f32 dist = pixel_line_distance(nail1_pos, nail2_pos, pixel_pos);
       
       minV = min(minV, dist);
