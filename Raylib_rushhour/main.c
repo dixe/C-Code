@@ -44,7 +44,7 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, 
 
 b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col);
 Vector2 base_anchor;
-void ResetBricks(GameState* game) { 
+void ResetBricks1(GameState* game) { 
   
   memset(&game->board, 0, sizeof(game->board));
   memset(&game->bricks, 0, sizeof(game->bricks));
@@ -58,7 +58,7 @@ void ResetBricks(GameState* game) {
 //  AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);
 }
 
-void ResetBricks2(GameState* game) {
+void ResetBricks(GameState* game) {
 
   memset(&game->board, 0, sizeof(game->board));
   memset(&game->bricks, 0, sizeof(game->bricks));
@@ -186,8 +186,8 @@ int main(void)
         arena_reset(&moves_arena);
         all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
 
-        solution = all_moves.longest_puzzle;
-        //solution = FindLongestPuzzle(&moves_arena, &frame_arena, all_moves.all_moves, game.board);
+        //solution = all_moves.longest_puzzle;
+        solution = FindLongestPuzzle(&moves_arena, &frame_arena, all_moves.all_moves, game.board);
         UpdateGameToBoard(&game, solution.initial_board);
       }
     }
@@ -298,7 +298,7 @@ void hm_print(s8 key, void* val)
 
 }
 
-AllMoves FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
+AllMoves FindAllMoves1(Arena* data_arena, Arena* scratch, GameState game)
 {
   HashMapTrie* res = { 0 };
   HashMapTrie* solutions = { 0 }; // key board wrapped in s8, value solution
@@ -441,7 +441,7 @@ AllMoves FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
 }
 
 
-AllMoves FindAllMoves2(Arena* data_arena, Arena* scratch, GameState game)
+AllMoves FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
 {
   HashMapTrie* res = { 0 };
 
@@ -623,22 +623,103 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, 
 }
 
 
-Solution FindLongestPuzzle1(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state) {
-
-  // do the same as find all moves. but breath first, and keep track of solutions, so we can do lookup
-
+// sorts desecending based on move depth
+int kv_depth_compar(const KeyValue* a, const KeyValue* b) {
+  return ((Move*)b->value)->depth - ((Move*)a->value)->depth;
 }
 
 
 Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state) {
 
-  Keys keys = hmt_all_keys(scratch, &all_moves);
+  // Do what we do in find solution, but don't stop before all states are visisted
+  Moves queue = { 0 };
+  HashMapTrie* visited = { 0 };
+
+  s8 init_key = s8_from_bytes((u8*)&initial_state, sizeof(BoardState));
+  Move root_move = { 0 };
+  root_move.board = initial_state;
+
+  Move* m = hmt_insert_get(&visited, init_key, Move, scratch);
+  *m = root_move;
+
+
+  moves_add(scratch, &queue, &root_move);
+  // TODO this will waste a lot of memory, since all allocated space are never reused
+  // it will make the array be the number of unique states. so the same sice as all_moves.
+  // But we might not need all that, since when an item is poped, we can in theory reuse the space.
+  isize index = 0;
+  while (index < queue.count)
+  {
+    // pop next move
+    Move v = queue.data[index];
+    index += 1;
+
+    s8 v_key = s8_from_bytes((u8*)&v.board, sizeof(BoardState));
+
+    Moves* neighbours = (Moves*)hmt_get(&all_moves, v_key);
+
+    if (neighbours == 0)
+    {
+      continue;
+    }
+    for (i32 i = 0; i < neighbours->count; i++)
+    {
+      Move neighbour = neighbours->data[i];
+      s8 neighbour_key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
+      if (!hmt_contains(&visited, neighbour_key))
+      {
+        s8_append(scratch, &neighbour.from_key, v_key, 0, v_key.byte_len);
+        neighbour.depth = v.depth + 1;
+
+        // add to seen and insert the move as data
+        Move* m = hmt_insert_get(&visited, neighbour_key, Move, scratch);
+        *m = neighbour;
+        moves_add(scratch, &queue, &neighbour);
+      }
+    }
+  }
+
+  KeyValues kvs = hmt_all_key_values(scratch, &visited);
+
+  // order kvs by 
+  qsort(kvs.data, kvs.count, sizeof(KeyValue), kv_depth_compar);
+
+  for (i32 i = 0; i < kvs.count; i++)
+  {
+    KeyValue kv = kvs.data[i];
+    Move* val = (Move*)kv.value;
+
+
+    Solution sol = FindSolution(scratch, scratch, all_moves, val->board);
+
+    // solution moves is actual board states, val->depth is number of moves required. initia state is depth 0    
+    if (sol.moves.count == (val->depth + 1))
+    {
+      if (memcmp(&sol.initial_board, &val->board, 36))
+      {
+        i32 a = 2;
+      }
+      sol.initial_board = val->board;
+      return sol;
+      i32 debug = 2;
+    }
+  }
+
+  Solution sol = { 0 };
+  sol.current_index = -1;
+  return sol;
+}
+
+
+Solution FindLongestPuzzle1(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state) {
+
+  KeyValues kvs = hmt_all_key_values(scratch, &all_moves);
 
   Solution sol = { 0 };
 
-  for (i32 i = 0; i < keys.count; i++)
+  for (i32 i = 0; i < kvs.count; i++)
   {
-    BoardState* board = (BoardState*)keys.data[i].data;
+    BoardState* board = (BoardState*)kvs.data[i].key.data;
     Solution solution = FindSolution(scratch, scratch, all_moves, *board);
     if (solution.moves.count > sol.moves.count)
     {

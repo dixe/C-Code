@@ -22,11 +22,17 @@ typedef struct HashMapTrie {
 } HashMapTrie;
 
 
+typedef struct
+{
+  s8 key;
+  void* value;
+} KeyValue;
+
 typedef struct {
   isize count;
   isize capacity;
-  s8* data;
-} Keys;
+  KeyValue* data;
+} KeyValues;
 
 u64 hash(s8 s);
 
@@ -46,7 +52,7 @@ void* hmt_get(HashMapTrie** map, s8 key);
 /// <returns></returns>
 b32 hmt_contains(HashMapTrie** map, s8 key);
 
-Keys hmt_all_keys(Arena* a, HashMapTrie** map);
+KeyValues hmt_all_key_values(Arena* a, HashMapTrie** map);
 
 /// <summary>
 /// See hmt_insert_get for clean interface

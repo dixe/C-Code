@@ -63,31 +63,34 @@ void* _hmt_upsert(HashMapTrie**map, s8 key, isize val_size, Arena* a)
   return &(*map)->value;
 }
 
-void hmt_all_key_internal(Arena* a, Keys* keys, HashMapTrie** map)
+void hmt_all_key_values_internal(Arena* a, KeyValues* kvs, HashMapTrie** map)
 {
   for (isize i = 0; i < 1 << HASHMAPTRIE_POT; i++)
   {
     HashMapTrie** child = &(*map)->child[i];
     if (*child != 0)
     {
-      if (keys->count >= keys->capacity)
+      if (kvs->count >= kvs->capacity)
       {
         // grow keys 
-        keys->data = arr_grow(a, keys->count, &keys->capacity, sizeof(s8), keys->data);
+        kvs->data = arr_grow(a, kvs->count, &kvs->capacity, sizeof(KeyValue), kvs->data);
       }
 
-      keys->data[keys->count] = (*child)->key;
-      keys->count += 1;
+      KeyValue data = { 0 };
+      data.key = (*child)->key;
+      data.value = &(*child)->value;
+      kvs->data[kvs->count] = data;
+      kvs->count += 1;
       // add to chils keys
-      hmt_all_key_internal(a, keys, child);
+      hmt_all_key_values_internal(a, kvs, child);
     }    
   }
 }
 
-Keys hmt_all_keys(Arena* a, HashMapTrie** map)
+KeyValues hmt_all_key_values(Arena* a, HashMapTrie** map)
 {
-  Keys res = { 0 };
-  hmt_all_key_internal(a, &res, map);
+  KeyValues res = { 0 };
+  hmt_all_key_values_internal(a, &res, map);
   return res;
 }
 
