@@ -581,10 +581,6 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, 
         parent = (Move*)hmt_get(&visited, parent->from_key);
       }
 
-      if (res.capacity != res.count)
-      {
-        i32 debug = 2;
-      }
       Solution sol = { 0 };
       sol.initial_board = initial_board;
       sol.moves = res;
@@ -692,19 +688,24 @@ Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_mo
 
     Solution sol = FindSolution(scratch, scratch, all_moves, val->board);
 
-    // solution moves is actual board states, val->depth is number of moves required. initia state is depth 0    
-    if (sol.moves.count == (val->depth + 1))
-    {
-      if (memcmp(&sol.initial_board, &val->board, 36))
-      {
-        i32 a = 2;
-      }
-      sol.initial_board = val->board;
-      return sol;
-      i32 debug = 2;
+    
+    // when a solution and the depth match, we know that this is the longest solution,
+    // otherwise we would have found it earlier
+    if (sol.moves.count == (val->depth ))
+    {     
+      // copy moves from scratch buffer to data buffer
+      Moves res_moves = { 0 };
+      res_moves.data = arena_alloc(data_arena, Move, sol.moves.count);
+
+      res_moves.count = sol.moves.count;
+      res_moves.capacity = sol.moves.count;
+      memcpy(res_moves.data, sol.moves.data, sizeof(Move) * sol.moves.count);
+      sol.moves = res_moves;
+      return sol;     
     }
   }
 
+  // no longest puzzle, since no solution
   Solution sol = { 0 };
   sol.current_index = -1;
   return sol;
