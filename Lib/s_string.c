@@ -54,17 +54,26 @@ s8 s8_isize_to_s8(Arena* arena, isize num)
     num = -num;
   }
 
-  isize chars = floor(log10(num)) + 1;
+  f64 l10 = log10(num);
+  f64 fl = floor(l10);
+  isize chars = 1;
+  
+  if (num != 0)
+  {
+    chars = floor(log10(num)) + 1;
+  }
+
   s8 res = s8_empty(arena, chars);
+  res.byte_len = chars;
 
   isize index = chars - 1;
-  while (num > 0)
+  while (index >= 0)
   {
     res.data[index] = num % 10 + '0';
     num = num / 10;
     index -= 1;
   }
-  res.byte_len = chars;
+ 
   return res;
 }
 
