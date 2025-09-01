@@ -54,13 +54,11 @@ s8 s8_isize_to_s8(Arena* arena, isize num)
     num = -num;
   }
 
-  f64 l10 = log10(num);
-  f64 fl = floor(l10);
   isize chars = 1;
   
   if (num != 0)
   {
-    chars = floor(log10(num)) + 1;
+    chars = (isize)(floor(log10((f64)num)) + 1);
   }
 
   s8 res = s8_empty(arena, chars);
@@ -135,20 +133,35 @@ b32 s8_equals(s8 s1, s8 s2)
   return cmp == 0;
 }
 
-void s8_append(Arena* a, s8* dest, s8 src, isize src_start, isize src_end)
+
+void s8_append(Arena* a, s8* dest, s8 src)
+{
+  s8_append_substring(a, dest, src, 0, src.byte_len);
+}
+
+void s8_append_substring(Arena* a, s8* dest, s8 src, isize src_start, isize src_end)
 {
   // check if we have capacity, otherwise copy grow dest
   isize space = dest->capacity - dest->byte_len;
   isize src_len = src_end - src_start;
   if (space < src_end - src_start)
   {
-
     isize additional = src_end - src_start - space;
     isize err = s8_grow_by(a, dest, additional);
   }
   memcpy(dest->data + dest->byte_len, src.data + src_start, src_len);
 
   dest->byte_len += src_len;
+}
+
+void s8_append_zero(Arena* a, s8* dest) {
+  if (dest->byte_len >= dest->capacity)
+  {
+    isize err = s8_grow_by(a, dest, 1);
+  }
+
+  dest->data[dest->byte_len] = 0;
+  dest->byte_len += 1;
 }
 
 isize s8_grow_by(Arena* a, s8* s, isize additionalBytes)

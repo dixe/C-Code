@@ -59,7 +59,7 @@ void* _hmt_upsert(HashMapTrie**map, s8 key, isize val_size, Arena* a)
   (*map) = new_map;
   // make a copy of the key into the hashmap arena
   (*map)->key = s8_empty(a, key.byte_len);
-  s8_append(a, &(*map)->key, key, 0, key.byte_len);
+  s8_append(a, &(*map)->key, key);
   return &(*map)->value;
 }
 

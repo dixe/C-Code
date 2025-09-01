@@ -61,13 +61,28 @@ b32 s8_equals(s8 s1, s8 s2);
 /// <summary>
 /// Appends src[src_start;src_end] to dest. If dest has capacity, resuse memory, otherwise realloc in Arena a
 /// </summary>
-/// <param name="a"></param>
-/// <param name="dest"></param>
-/// <param name="src"></param>
-/// <param name="src_start"></param>
-/// <param name="src_end"></param>
-void s8_append(Arena* a, s8* dest, s8 src, isize src_start, isize src_end);
+/// <param name="a">Arena where dest is located and where dest is extended to</param>
+/// <param name="dest">String to be appended to</param>
+/// <param name="src">string to append</param>
+void s8_append(Arena* a, s8* dest, s8 src);
 
+
+/// <summary>
+/// Appends src[src_start;src_end] to dest. If dest has capacity, resuse memory, otherwise realloc in Arena a
+/// </summary>
+/// <param name="a">Arena where dest is located and where dest is extended to</param>
+/// <param name="dest">String to be appended to</param>
+/// <param name="src">string to append</param>
+/// <param name="src_start">Offset into src where to start to append from</param>
+/// <param name="src_end">Offset into src_end where to stop append</param>
+void s8_append_substring(Arena* a, s8* dest, s8 src, isize src_start, isize src_end);
+
+/// <summary>
+/// Appends \0 to string, to make it a valid c string
+/// </summary>
+/// <param name="a">Arena where dest is located and where dest is extended to</param>
+/// <param name="dest">String to be appended to</param>
+void s8_append_zero(Arena* a, s8* dest);
 
 /// <summary>
 /// Grows the string s by additionalBytes in the give arena

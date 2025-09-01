@@ -31,7 +31,7 @@ s8 file_iter_next(Arena* a, FileIter* iter, u8 chr) {
   while (chr_pos == -1)
   {
     // append substring of inputstring to ret
-    s8_append(a, &ret, iter->input_string, iter->index, iter->input_string.byte_len);
+    s8_append_substring(a, &ret, iter->input_string, iter->index, iter->input_string.byte_len);
 
     iter->input_string.byte_len = fread(iter->input_string.data, sizeof(u8), iter->input_string.capacity, iter->fptr);
     iter->index = 0;
@@ -44,7 +44,7 @@ s8 file_iter_next(Arena* a, FileIter* iter, u8 chr) {
   }
 
   // copy 
-  s8_append(a, &ret, iter->input_string, iter->index, chr_pos);
+  s8_append_substring(a, &ret, iter->input_string, iter->index, chr_pos);
   iter->index = chr_pos + 1;
   return ret;
 }

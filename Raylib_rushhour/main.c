@@ -36,7 +36,7 @@ Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_mo
 Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState inital_state);
 b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col);
 
-void ResetBricks(GameState* game) { 
+void ResetBricks1(GameState* game) { 
   
   memset(&game->board, 0, sizeof(game->board));
   memset(&game->bricks, 0, sizeof(game->bricks));
@@ -50,7 +50,7 @@ void ResetBricks(GameState* game) {
   AddBrick(game, 0, 1, 2, VERTICAL, YELLOW);
 }
 
-void ResetBricks1(GameState* game) {
+void ResetBricks(GameState* game) {
 
   memset(&game->board, 0, sizeof(game->board));
   memset(&game->bricks, 0, sizeof(game->bricks));
@@ -83,26 +83,26 @@ Rectangle rect(i32 x, i32 y, i32 w, i32 h)
 
 s8 button_title(Arena *arena, Move move) {
 
-  s8 res = s8_empty(arena, 8); 
-  res.data[0] = move.brick_id + 48;
-  res.byte_len += 1;
+  s8 res = s8_isize_to_s8(arena, move.brick_id);
   if (move.horizontal == 1)
   {
-    s8_append(arena, &res, s8_from_literal(" Right"), 0, 6);
+    s8_append(arena, &res, s8_from_literal(" Right"));
   }
   else if (move.horizontal == -1)
   {
-    s8_append(arena, &res, s8_from_literal(" Left"), 0, 5);
+    s8_append(arena, &res, s8_from_literal(" Left"));
   }
   else if (move.vertical == 1)
   {
-    s8_append(arena, &res, s8_from_literal(" Down"), 0, 5);
+    s8_append(arena, &res, s8_from_literal(" Down"));
   }
   else if (move.vertical == -1)
   {
-    s8_append(arena, &res, s8_from_literal(" Up"), 0, 3);
+    s8_append(arena, &res, s8_from_literal(" Up"));
   }
-  res.data[res.byte_len] = 0;
+  
+  s8_append_zero(arena, &res);
+
   return res;
 }
 
@@ -178,7 +178,7 @@ int main(void)
 
     if (IsWinningState(game.board))
     {
-      if (GuiButton((Rectangle) { 100, 140, 80, 40 }, "Find puzzle"))
+      if (GuiButton((Rectangle) { 100, 190, 80, 40 }, "Find puzzle"))
       {
         available_moves.count = 0;
         available_moves.capacity = 0;
@@ -226,10 +226,10 @@ int main(void)
       s8 text = s8_from_c_str("Solution ");
 
       s8 number_s = s8_isize_to_s8(&frame_arena, solution.moves.count);
-      s8_append(&frame_arena, &text, number_s, 0, number_s.byte_len);
+      s8_append(&frame_arena, &text, number_s);
 
-      s8 zero = s8_from_c_str("\0");
-      s8_append(&frame_arena, &text, zero, 0, 1);
+      s8_append_zero(&frame_arena, &text);
+
       if (GuiButton(rect(400, 10, 80, 40), text.data))
       {
         solution.current_index = solution.moves.count - 1;
@@ -446,7 +446,7 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, 
       s8 neighbour_key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
       if (!hmt_contains(&visited, neighbour_key))
       {
-        s8_append(scratch, &neighbour.from_key, v_key, 0, v_key.byte_len);        
+        s8_append(scratch, &neighbour.from_key, v_key);        
         neighbour.depth = v.depth + 1;
 
         // add to seen and insert the move as data
@@ -468,7 +468,12 @@ int kv_depth_compar(const KeyValue* a, const KeyValue* b) {
 
 Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state) {
 
-  // Do what we do in findSolution, but don't stop before all states are visisted
+  // Do a breath first search, logging depth of all states
+  // After that get all state out in a list, and sort them in desceding order, by depth
+  // Search all states for a solution, until we find a solution that matches depth. This is our longest puzzle state
+  // We cannot just take the state furthest away from our init state. There can be multiple states where we 
+  // reach winning condition. A state further from the start can either not contribute to solution length, or it can
+  // impact it to make the solution shorter. By moving a piece out of the way. 
   Moves queue = { 0 };
   HashMapTrie* visited = { 0 };
 
@@ -505,7 +510,7 @@ Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_mo
       s8 neighbour_key = s8_from_bytes((u8*)&neighbour.board, sizeof(BoardState));
       if (!hmt_contains(&visited, neighbour_key))
       {
-        s8_append(scratch, &neighbour.from_key, v_key, 0, v_key.byte_len);
+        s8_append(scratch, &neighbour.from_key, v_key);
         neighbour.depth = v.depth + 1;
 
         // add to seen and insert the move as data
@@ -529,7 +534,7 @@ Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_mo
     Solution sol = FindSolution(scratch, scratch, all_moves, val->board);
 
     // when a solution and the depth match, we know that this is the longest solution,
-    // otherwise we would have found it earlier
+    // otherwise we would have found it earlier    
     if (sol.moves.count == (val->depth ))
     {     
       // copy moves from scratch buffer to data buffer
