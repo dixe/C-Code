@@ -7,6 +7,7 @@
 #ifndef ARENA_RESERVE_SIZE
 #define ARENA_RESERVE_SIZE  ((i64)1) << 40
 #endif 
+#define ARENA_SET_MEM_DEBUG_NOT
 //
 #define MEM_RESERVE 0x00002000
 #define MEM_COMMIT  0x00001000
@@ -38,7 +39,11 @@ Arena arena_create(isize bytes)
   a.offset = 0;
   a.cap = bytes;
   a.flags |= ARENA_GROWABLE;
+#ifdef ARENA_SET_MEM_DEBUG
   memset(a.data, 0xAB, a.cap);
+#endif // ARENA_SET_MEM_DEBUG
+
+  
   return a;
 }
 
@@ -50,7 +55,9 @@ Arena arena_create_fixed(u8* data, isize bytes)
   a.offset = 0;
   a.cap = bytes;
   a.flags |= ARENA_FIXED;
+#ifdef ARENA_SET_MEM_DEBUG
   memset(a.data, 0xF0, a.cap);
+#endif
   return a;
 }
 
@@ -115,7 +122,7 @@ void* arena_realloc(Arena* arena, u8* ptr, isize current_size, ptrdiff_t new_siz
 
 void arena_reset(Arena* arena)
 {
-#ifdef _DEBUG
+#ifdef ARENA_SET_MEM_DEBUG
   memset(arena->data, 0xAB, arena->cap);
 #endif
   arena->offset = 0;

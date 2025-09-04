@@ -75,8 +75,9 @@ typedef struct {
   isize current_index;
 } Solution;
 
-typedef struct {
-  Solution longest_puzzle;
-  BoardGraph* all_moves;
-} AllMoves;
 
+
+typedef struct {
+  Solution solution;
+  GameState game;
+} NewPuzzle;

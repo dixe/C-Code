@@ -31,10 +31,12 @@ Rectangle BrickRect(Brick b);
 Rectangle TileRect(i32 col, i32 row, i32 horizontal_tile, i32 vertical_tiles);
 Moves FindMoves(Arena* a, GameState game);
 void UpdateGameToBoard(GameState* game, BoardState board);
-AllMoves FindAllMoves(Arena* data_arena, Arena* scratch, GameState game);
+BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game);
 Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState initial_state);
 Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, BoardState inital_state);
 b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col);
+
+NewPuzzle GeneratePuzzle(Arena* data_arena, Arena* scratch);
 
 void ResetBricks1(GameState* game) { 
   
@@ -135,7 +137,7 @@ int main(void)
   ResetBricks(&game);
   // Main game loop
   Moves available_moves = { 0 };
-  AllMoves all_moves = { 0 };
+  BoardGraph* all_moves = 0;
   Solution solution = { 0 };
   while (!WindowShouldClose())        // Detect window close button or ESC key
   {
@@ -152,15 +154,17 @@ int main(void)
 
     if (GuiButton((Rectangle) { 100, 55, 80, 40 }, "Generate puzzle"))
     {
-      ResetBricks(&game);
+      arena_reset(&moves_arena);
+      NewPuzzle np = GeneratePuzzle(&moves_arena, &frame_arena);
+      game = np.game;
+      solution = np.solution;
     }
     
     if (GuiButton((Rectangle) { 100, 100, 80, 40 }, "Find all moves"))
     {
       // Reset moves arena, array and table
       available_moves.count = 0;
-      available_moves.capacity = 0;
-      all_moves.all_moves = 0 ;
+      available_moves.capacity = 0;      
       arena_reset(&moves_arena);
       all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
     }
@@ -170,11 +174,12 @@ int main(void)
       // Reset moves arena, array and table
       available_moves.count = 0;
       available_moves.capacity = 0;
-      all_moves.all_moves = 0;
+      all_moves = 0;
       arena_reset(&moves_arena);
       all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
-      solution = FindSolution(&moves_arena, &frame_arena, all_moves.all_moves, game.board);
+      solution = FindSolution(&moves_arena, &frame_arena, all_moves, game.board);      
     }
+
 
     if (IsWinningState(game.board))
     {
@@ -182,12 +187,12 @@ int main(void)
       {
         available_moves.count = 0;
         available_moves.capacity = 0;
-        all_moves.all_moves = 0;
+        all_moves = 0;
         arena_reset(&moves_arena);
         all_moves = FindAllMoves(&moves_arena, &frame_arena, game);
 
         //solution = all_moves.longest_puzzle;
-        solution = FindLongestPuzzle(&moves_arena, &frame_arena, all_moves.all_moves, game.board);
+        solution = FindLongestPuzzle(&moves_arena, &frame_arena, all_moves, game.board);
         UpdateGameToBoard(&game, solution.initial_board);
       }
     }
@@ -197,12 +202,12 @@ int main(void)
       // Reset moves arena, array and table
       available_moves.count = 0;
       available_moves.capacity = 0;
-      all_moves.all_moves = 0;
+      all_moves = 0;
       available_moves = FindMoves(&moves_arena, game);
     }
 
     s8 key = s8_from_bytes((u8*)&game.board, sizeof(BoardState));
-    Moves* moves = (Moves*) hmt_get(&all_moves.all_moves, key);
+    Moves* moves = (Moves*) hmt_get(&all_moves, key);
 
     if(solution.moves.data != 0)
     { 
@@ -286,7 +291,7 @@ int main(void)
   return 0;
 }
 
-AllMoves FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
+BoardGraph* FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
 {
   HashMapTrie* res = { 0 };
 
@@ -340,10 +345,7 @@ AllMoves FindAllMoves(Arena* data_arena, Arena* scratch, GameState game)
     }
   }
 
-  AllMoves am = { 0 };
-  am.all_moves = res;
-  return am;
-
+  return res;
 }
 
 Moves FindMoves(Arena* a, GameState game)
@@ -407,6 +409,10 @@ Solution FindSolution(Arena* data_arena, Arena* scratch, BoardGraph* all_moves, 
   isize index = 0;
   while (index < queue.count )
   {
+    if (scratch->cap > 135609751)
+    {
+      i32 debug = 2;
+    }
     // pop next move
     Move v = queue.data[index];
     index += 1;
@@ -484,7 +490,6 @@ Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_mo
   Move* m = hmt_insert_get(&visited, init_key, Move, scratch);
   *m = root_move;
 
-
   moves_add(scratch, &queue, &root_move);
   // TODO this will waste a lot of memory, since all allocated space are never reused
   // it will make the array be the number of unique states. so the same sice as all_moves.
@@ -531,7 +536,15 @@ Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_mo
   {
     Move* val = (Move*)kvs.data[i].value;
 
+    isize arena_start = scratch->offset;
+
     Solution sol = FindSolution(scratch, scratch, all_moves, val->board);
+
+    // if no solution,, there will never be 1
+    if(sol.current_index == -1)
+    { 
+      return sol;
+    }
 
     // when a solution and the depth match, we know that this is the longest solution,
     // otherwise we would have found it earlier    
@@ -547,12 +560,49 @@ Solution FindLongestPuzzle(Arena* data_arena, Arena* scratch, BoardGraph* all_mo
       sol.moves = res_moves;
       return sol;     
     }
+
+    // throw away solution, by restting arena data pointer
+    scratch->offset = arena_start;
   }
 
   // no longest puzzle, since no solution
   Solution sol = { 0 };
   sol.current_index = -1;
   return sol;
+}
+
+
+NewPuzzle GeneratePuzzle(Arena* data_arena, Arena* scratch)
+{
+
+  GameState game = { 0 };
+  // add target brick
+  AddBrick(&game, 0, 2, 2, HORIZONTAL, GREEN);
+
+  i32 extra_bricks = GetRandomValue(3,10);
+
+  for (i32 i = 0; i < extra_bricks; i++)
+  {
+    // either just generate a random start location and brick size and
+    i32 row = GetRandomValue(0, GRIDW - 1);
+    i32 col = GetRandomValue(0, GRIDW - 1);
+    i32 dir = GetRandomValue(0, 1);
+    i32 len = GetRandomValue(2, 3);
+
+    // id larger than any used id, and not 0
+    Brick b = { .len = len, .dir = dir, .brick_id = GRIDW * GRIDW + 1 };
+    if (IsMoveValid(&game, b, row, col))
+    {
+      Color color = (Color){ GetRandomValue(0, 255), GetRandomValue(0, 255), GetRandomValue(0, 255), 255 };
+      AddBrick(&game, col, row, len, dir, color);
+    }
+  }
+
+  BoardGraph* all_moves = FindAllMoves(scratch, scratch, game);
+  Solution sol = FindLongestPuzzle(data_arena, scratch, all_moves, game.board);
+  UpdateGameToBoard(&game, sol.initial_board);
+  NewPuzzle res = { .solution = sol, .game = game };
+  return res;
 }
 
 void UpdateGameToBoard(GameState* game, BoardState board)
@@ -617,7 +667,7 @@ b32 IsMoveValid(GameState* game, Brick b, i32 new_row, i32 new_col) {
     i32 row = new_row + (VERTICAL == b.dir) * j;
     i32 col = new_col + (HORIZONTAL == b.dir) * j;
     u8 tile_id = game->board.data[row * GRIDW + col];
-    valid &= (row < GRIDW&& row >= 0 && col >= 0 && col < GRIDW) && tile_id == 0 || tile_id == b.brick_id;
+    valid &= (row < GRIDW && row >= 0 && col >= 0 && col < GRIDW) && (tile_id == 0 || tile_id == b.brick_id);
   }
   return valid;
 }
