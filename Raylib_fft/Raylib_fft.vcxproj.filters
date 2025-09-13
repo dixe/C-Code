@@ -30,12 +30,18 @@
     <ClCompile Include="..\Lib\dyn_array.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="containers.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Lib\custom_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\hashmap.h">
@@ -45,6 +51,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\dyn_array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="containers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

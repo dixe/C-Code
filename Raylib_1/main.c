@@ -79,8 +79,6 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
     u32 cp = code_points.data[i];
   }
 
-  Arena frame_arena = arena_create(sizeof(text));
-
   // Load font containing all the provided codepoint glyphs
   // A texture font atlas is automatically generated
   // only load the actual code points in the text, and only d

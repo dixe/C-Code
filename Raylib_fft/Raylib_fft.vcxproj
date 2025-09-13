@@ -21,8 +21,8 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{4c5733c7-4fa1-49bd-8eda-8abba488036e}</ProjectGuid>
-    <RootNamespace>Raylib1</RootNamespace>
+    <ProjectGuid>{4a259829-21df-4dc3-9ac5-da6814fc00b7}</ProjectGuid>
+    <RootNamespace>Raylibfft</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -114,9 +114,8 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard_C>stdc11</LanguageStandard_C>
       <AdditionalIncludeDirectories>E:\repos\C-Code\Lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
@@ -145,6 +144,7 @@
     <ClCompile Include="..\Lib\dyn_array.c" />
     <ClCompile Include="..\Lib\hashmap.c" />
     <ClCompile Include="..\Lib\s_string.c" />
+    <ClCompile Include="containers.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
@@ -152,9 +152,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Lib\arena.h" />
+    <ClInclude Include="..\Lib\custom_types.h" />
     <ClInclude Include="..\Lib\dyn_array.h" />
     <ClInclude Include="..\Lib\hashmap.h" />
     <ClInclude Include="..\Lib\s_string.h" />
+    <ClInclude Include="containers.h" />
+    <ClInclude Include="types.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
