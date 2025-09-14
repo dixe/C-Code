@@ -10,15 +10,22 @@
 #include "types.h"
 #include "generated.h"
 
-Sequence dft(Arena* a, Sequence input);
 
-Sequence gen_wave(Arena* a, double freq, isize sample_freq_khz, isize samples);
+typedef struct {
+  Sequence dft_res;
+  f64Arr freq_bins;
+} DftResult;
+
+DftResult dft(Arena* a, Sequence input);
+
+Sequence gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
 
 Sequence gen_wave_test(Arena* a);
-double c_mag(Complex c);
+f64 c_mag(Complex c);
 void draw_sequence(Arena* a, Sequence s);
 
-double sample_rate = 100;
+f64 sample_rate = 500;
+f32 wave_freq = 0.;
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -39,7 +46,7 @@ int main(void)
   Arena perm_arena = arena_create(512);
 
   Sequence test = gen_wave_test(&perm_arena);
-  Sequence dft_res = dft(&perm_arena, test);
+  DftResult dft_res = dft(&perm_arena, test);
   b32 draw_fft = false;
 
   // Main game loop
@@ -57,8 +64,13 @@ int main(void)
     Sequence_add(&frame_arena, &s, c2);
     Sequence_add(&frame_arena, &s, c3);
 
+    if (GuiSlider ((Rectangle) { 100, 10, 120, 40 }, "1", "30", &wave_freq, 1, 30)){
+      wave_freq = (f32)((int)wave_freq);
+    }
 
-    
+    s8 number_s = s8_f64_to_s8(&frame_arena, (f64)wave_freq, 2);
+    s8_append_zero(&frame_arena, &number_s);
+    DrawText(number_s.data, 250, 20, 16, BLACK);
 
     if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Reload test Data"))
     {
@@ -78,7 +90,7 @@ int main(void)
 
     if (draw_fft)
     {
-      draw_sequence(&frame_arena, dft_res);
+      draw_sequence(&frame_arena, dft_res.dft_res);
     }
     else {
       draw_sequence(&frame_arena, test);
@@ -126,7 +138,7 @@ void draw_sequence(Arena* frame_arena, Sequence s)
 
   for (isize i = 0; i < s.count; i++)
   {
-    double m = s.data[i].i; // c_mag(s.data[i]);
+    double m = s.data[i].r; // c_mag(s.data[i]);
     if (m > 100)
     {
       isize debug = 2;
@@ -188,7 +200,7 @@ void draw_sequence(Arena* frame_arena, Sequence s)
   DrawText(number_s.data, x_base - 20, y_base + h + 20, 16, BLACK);
 
   // Draw frequency bin with highest number
-    number_s = s8_isize_to_s8(frame_arena, y_max_idx);
+  number_s = s8_isize_to_s8(frame_arena, y_max_idx);
   s8 max_freq_s = s8_concat(frame_arena, s8_from_literal("largests frequency bin = "), number_s);
   s8_append_zero(frame_arena, &max_freq_s);
   DrawText(max_freq_s.data, 300, 20, 20, BLACK);
@@ -199,18 +211,18 @@ void draw_sequence(Arena* frame_arena, Sequence s)
 
   for (isize i = 0; i < s.count; i++)
   {
-    double m = s.data[i].i; // c_mag(s.data[i]);
+    double m = s.data[i].r; // c_mag(s.data[i]);
     //double m = c_mag(s.data[i]);
     // map x into range 0-1000
     
     // range lerp
     // 0 - 1 range, inversed
     double x =  (i - x_min) / (x_max - x_min);
-    x = x * 1000.0;
+    x = x * w;;
 
     // 0 - 1 range, inversed since screen space coordinate system i 0,0 at top left, and not bottom
     double y = 1.0 - (m - y_min) / (y_max - y_min);
-    y = y * 600;
+    y = y * h;
 
 
     DrawCircle((int)x + x_base, (int)y + y_base, 2, RED);
@@ -247,33 +259,36 @@ Complex c_add(Complex a, Complex b)
 }
 
 
-Sequence dft(Arena* a, Sequence input) 
+DftResult dft(Arena* a, Sequence input)
 {
-  Sequence res = { 0 };
+  DftResult res = { 0 };
+  
 
   double N = (double)input.count;
 
-  res.capacity = input.capacity;
-  res.count = 0;
-  res.data = arena_alloc(a, Complex, input.count);
+  res.dft_res.capacity = input.capacity;
+  res.dft_res.count = 0;
+  res.dft_res.data = arena_alloc(a, Complex, input.count);
   
-  for (isize k = 0; k < input.count; k++)
+  for (isize k = 0; k < N; k++)
   {
-    Complex next = { 0 };
+    
+    f64 real = 0.0;
+    f64 imag = 0.0;
     for (isize i = 0; i < N; i++)
     {
+      f64 x_n = input.data[i].r;
       double n = (double)i;
 
-      Complex c = { 0 };
-      double exp = 2 * PI * (k / N) * n;
-      c.r = cos(exp);
-      c.i = sin(exp);
-      Complex v = input.data[i];      
-      Complex prod = c_mul(v, c);
-      next = c_add(next, prod);
+      double angle = 2 * PI * k * n / N;
+      real += x_n * cos(angle);
+      imag -= x_n * sin(angle);
     }
 
-    Sequence_add(a, &res, next);
+    Complex next = { 0 };
+    next.r = real;
+    next.i = imag;
+    Sequence_add(a, &res.dft_res, next);
   }  
 
 
@@ -284,6 +299,7 @@ Sequence dft(Arena* a, Sequence input)
     f64Arr_add(a, &frequencies, freq);
   }
 
+  res.freq_bins = frequencies;
 
   return res;
 }
@@ -295,20 +311,16 @@ Sequence gen_wave_test(Arena* a)
   // sample 3 sec
   // wave is 1 hz
   // Sample 10 sec, with sample rate is number of samles
-  isize samples = 1 * (isize)sample_rate;
+  isize samples = 3 * (isize)sample_rate;
   Sequence res = Sequence_empty(a, samples);
 
   // each sample is 1/samples of a sec
-  double step = 2.0 * PI / sample_rate;
-  double freq = 23;
+  f64 step = 2.0 * PI / sample_rate;
+  
   for (isize i = 0; i < res.capacity; i++)
   {
     Complex c = { 0 };
-    if (i % (int)sample_rate == 0)
-    {
-      isize debug = 2;
-    }
-    c.r = sin(freq * i * step) + 1;   
+    c.r = sin(wave_freq * i * step) + 1;   
 
     Sequence_add(a, &res, c);
   }
