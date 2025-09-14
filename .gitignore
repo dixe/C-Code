@@ -434,5 +434,3 @@ FodyWeavers.xsd
 /unicode/UCD.zip
 /unicode/UnicodeData File Format.html
 /enc_temp_folder/*
-generated.c
-generated.h
