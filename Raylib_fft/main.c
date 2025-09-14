@@ -34,7 +34,7 @@ DrawInfo draw_sequence(Arena* a, f64Arr s);
 
 f64Arr dft_to_plot_data(Arena* a, Sequence s);
 
-f64 sample_rate = 500;
+f64 sample_rate = 300;
 f32 wave_freq = 2.;
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -331,7 +331,7 @@ f64Arr gen_wave_test(Arena* a)
     f64 v = sin(wave_freq * i * step);
 
     v += sin((wave_freq + 1) * i * step);
-    v += sin((wave_freq + 100) * i * step) * 0.5;
+    v += sin((wave_freq + 100) * i * step + 30*step) * 0.5;
 
     f64Arr_add(a, &res, v);
   }
