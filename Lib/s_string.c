@@ -46,6 +46,24 @@ s8 s8_empty(Arena* arena, isize capacity)
 }
 
 
+
+s8 s8_f64_to_s8(Arena* arena, f64 num, isize presicion)
+{  
+  f64 int_part;
+  f64 frac_part = modf(num, &int_part);
+  s8 res = s8_isize_to_s8(arena, (isize)int_part);
+
+  frac_part = frac_part * pow(10, presicion);
+
+  s8 frac_s = s8_isize_to_s8(arena, frac_part);
+
+  s8_append(arena, &res, s8_from_literal("."));
+  s8_append(arena, &res, frac_s);
+
+  return res;
+
+}
+
 s8 s8_isize_to_s8(Arena* arena, isize num)
 {  
   b32 negative = num < 0;

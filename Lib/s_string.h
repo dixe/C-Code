@@ -33,6 +33,8 @@ s8 s8_from_bytes(u8* bytes, isize count);
 
 s8 s8_isize_to_s8(Arena* arena, isize num);
 
+s8 s8_f64_to_s8(Arena* arena, f64 num, isize presicion);
+
 
 void s8_replace_inline(Arena* a, s8* s, s8 old_str, s8 new_str);
 

@@ -7,23 +7,23 @@
 typedef struct {
   isize count;
   isize capacity;
-   Complex* data;
-}  Sequence;
+  Complex* data;
+} Sequence;
 
 
- Sequence  Sequence_empty(Arena* arena, isize capacity);
+Sequence Sequence_empty(Arena* arena, isize capacity);
 
-void  Sequence_add(Arena* arena,  Sequence* s,  Complex c);;
+void Sequence_add(Arena* arena, Sequence* s, Complex c);;
 
 
 typedef struct {
   isize count;
   isize capacity;
-   double* data;
-}  DoubleArr;
+  f64* data;
+} f64Arr;
 
 
- DoubleArr  DoubleArr_empty(Arena* arena, isize capacity);
+f64Arr f64Arr_empty(Arena* arena, isize capacity);
 
-void  DoubleArr_add(Arena* arena,  DoubleArr* s,  double c);;
+void f64Arr_add(Arena* arena, f64Arr* s, f64 c);;
 

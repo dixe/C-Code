@@ -132,6 +132,11 @@ void add_array(s8* header_output, s8* code_output, s8Slice next_line)
 
   s8Slice type_name = s8_subslice(next_line.str, typename_idx, structname_idx);
   s8Slice struct_name = s8_subslice(next_line.str, structname_idx, structname_end_idx);
+  // remove space in from
+  type_name.str.data += 1;
+  type_name.str.byte_len -= 1;
+  struct_name.str.data += 1;
+  struct_name.str.byte_len -= 1;
 
   add_array_header(header_output, type_name, struct_name);
   add_array_code(code_output, type_name, struct_name);
@@ -196,7 +201,6 @@ int main(int argc, char* argv[]) {
 
   while (next_line.offset_in_original < gen_content.byte_len || next_line.str.byte_len > 0)
   {
-
     parse_line(&header_output, &code_output, next_line);
     next_line = s8_next_line_slice(gen_content, next_line.offset_in_original + 1);
   }
