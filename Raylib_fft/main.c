@@ -32,7 +32,7 @@ f64 c_mag(Complex c);
 DrawInfo draw_sequence(Arena* a, Sequence s);
 
 f64 sample_rate = 100;
-f32 wave_freq = 0.;
+f32 wave_freq = 2.;
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -145,7 +145,6 @@ int main(void)
 
 DrawInfo draw_sequence(Arena* frame_arena, Sequence s)
 {
-
 
   // draw in rectangle x= 100, y=100, w=1000, h=600
   i32 x_base = 130;
@@ -264,7 +263,7 @@ Complex c_add(Complex a, Complex b)
      
 }
 
-
+//
 DftResult dft(Arena* a, Sequence input)
 {
   DftResult res = { 0 };
@@ -276,7 +275,8 @@ DftResult dft(Arena* a, Sequence input)
   res.dft_res.count = 0;
   res.dft_res.data = arena_alloc(a, Complex, input.count);
   
-  for (isize k = 0; k < N; k++)
+  // only compute the first N/2 values, since the rest are useless for realtime data
+  for (isize k = 0; k < N/2 + 1; k++)
   {
     
     f64 real = 0.0;
@@ -336,16 +336,15 @@ Sequence gen_wave_test(Arena* a)
   isize samples = 3 * (isize)sample_rate;
   Sequence res = Sequence_empty(a, samples);
 
-
-  
-
   // each sample is 1/samples of a sec
   f64 step = 2.0 * PI / sample_rate;
   
   for (isize i = 0; i < res.capacity; i++)
   {
     Complex c = { 0 };
-    c.r = sin(wave_freq * i * step);   
+    c.r = sin(wave_freq * i * step) * 100;
+
+    c.r += sin((wave_freq+3) * i * step) * 100;
 
     Sequence_add(a, &res, c);
   }
