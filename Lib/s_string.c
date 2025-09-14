@@ -75,6 +75,53 @@ s8 s8_isize_to_s8(Arena* arena, isize num)
   return res;
 }
 
+
+isize s8_find_next(isize start_index, s8 s, s8 target)
+{
+  for (isize i = start_index; i < s.byte_len - target.byte_len; i++)
+  {
+    b32 eq = 0 == memcmp(s.data + i, target.data, target.byte_len );
+    if (eq)
+    {
+      return i;
+    }
+  }
+
+  return -1;
+}
+
+
+s8 s8_replace(Arena* a, s8 s, s8 old_str, s8 new_str)
+{
+  s8 res = s8_empty(a, s.capacity);
+  
+  isize last_replace = 0;
+  isize next_replace = s8_find_next(last_replace, s, old_str);
+
+  
+  while (next_replace != -1)
+  {
+    
+    s8 next_part = { 0 };
+    next_part.data = s.data + last_replace;
+    next_part.byte_len = next_replace - last_replace;
+    s8_append(a, &res, next_part);
+    s8_append(a, &res, new_str);
+    
+    last_replace = next_replace + old_str.byte_len;
+    next_replace = s8_find_next(next_replace + 1, s, old_str);
+  }
+
+  // append the rest of the string
+  s8 next_part = { 0 };
+  next_part.data = s.data + last_replace;
+  next_part.byte_len = s.byte_len - last_replace;
+  s8_append(a, &res, next_part);
+
+
+  return res;
+}
+
 isize s8_find_char(isize start_index, s8 s, u8 chr) {
   for (isize i = start_index; i < s.byte_len; i++)
   {
@@ -84,6 +131,23 @@ isize s8_find_char(isize start_index, s8 s, u8 chr) {
     }
   }
   return -1;
+}
+
+s8Slice s8_subslice(s8 s, isize start, isize end)
+{  
+  s8Slice res = { 0 };
+  isize byte_len = end - start;
+  if (byte_len <= 0 || start >= s.byte_len || end > s.byte_len)
+  {
+    return res;
+  }
+
+  res.str = (s8){ 0 };
+  res.str.data = s.data + start;
+  res.offset_in_original = start;
+  res.str.byte_len = byte_len;
+
+  return res;
 }
 
 s8 s8_substring(Arena* a, s8 s, isize start, isize end) {
@@ -318,6 +382,50 @@ b32 s8_try_parse_f64(s8 s, f64* output)
 }
 
 
+
+
+s8Slice s8_next_line_slice(s8 s, isize start) 
+{
+  s8Slice res = { 0 };
+  res.str = (s8){ 0 };
+  res.str.data = s.data + start;
+  
+  b32 finished = 0;
+  isize len = 0;
+  while (!finished)
+  {
+    if(start + len >= s.byte_len || s.data[start + len] == '\n' )
+    {
+      finished = 1;
+      continue;
+    }
+    len += 1;
+  }
+
+  res.str.byte_len = len;
+  res.offset_in_original = start + len;
+  return res;
+
+}
+
+
+b32 s8_starts_with(s8 s, s8 start)
+{
+  if (s.byte_len < start.byte_len || start.byte_len == 0)
+  {
+    return 0;
+  }
+  
+  b32 cmpRes = memcmp(s.data, start.data, start.byte_len) == 0;
+
+  return cmpRes;
+}
+
+
+
+
+
+////////////S16 CODE///////////
 
 s16 s16_from_c_str(c16* lit_str) {
   s16 s;

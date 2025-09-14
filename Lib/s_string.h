@@ -10,6 +10,15 @@ typedef struct {
   isize capacity;
 } s8;
 
+/// <summary>
+/// Slice of s8, wraps an s8. It does not own the s8, the str.data points to another s8 data, so do not modify either
+/// while both are in use. The str.capacity is also 0, to indicate that we should modify this s8
+/// </summary>
+typedef struct {
+  isize offset_in_original;
+  s8 str;
+} s8Slice;
+
 #define s8_from_literal(s) (s8){s, sizeof(s)-1, sizeof(s)}
 
 // using strlen to get byte_len and capacity.
@@ -24,13 +33,20 @@ s8 s8_from_bytes(u8* bytes, isize count);
 
 s8 s8_isize_to_s8(Arena* arena, isize num);
 
+
+void s8_replace_inline(Arena* a, s8* s, s8 old_str, s8 new_str);
+
+s8 s8_replace(Arena* a, s8 s, s8 old_str, s8 new_str);
+
+
 /// <summary>
-/// Find char (chr) in s -1 on not found
+/// Find char (chr) in string s. return -1 when not found
 /// </summary>
-/// <param name="s"></param>
-/// <param name="chr"></param>
-/// <returns></returns>
-isize s8_find_char(isize index, s8 s, u8 chr);
+/// <param name="start_index">start_index>Offset into s to start from</param>
+/// <param name="s">String to find char in</param>
+/// <param name="chr">Char to find</param>
+/// <returns>Index into string where char was found, -1 when not found</returns>
+isize s8_find_char(isize start_index, s8 s, u8 chr);
 
 /// <summary>
 /// Substring with start and end pos allocate the data for return string in the arena a
@@ -42,6 +58,15 @@ isize s8_find_char(isize index, s8 s, u8 chr);
 /// <returns></returns>
 s8 s8_substring(Arena* a, s8 s, isize start, isize end);
 
+/// <summary>
+/// Works as substring, but does not allocate, data points to original string
+/// </summary>
+/// <param name="a"></param>
+/// <param name="s"></param>
+/// <param name="start"></param>
+/// <param name="end"></param>
+/// <returns></returns>
+s8Slice s8_subslice(s8 s, isize start, isize end);
 
 /// <summary>
 /// Concat s1 and s2 into a new string allocated in arena
@@ -139,7 +164,16 @@ b32 s8_try_parse_u8(s8 s, u8* output);
 b32 s8_try_parse_f64(s8 s, f64* output);
 
 
+/// <summary>
+/// Returns a new s8 with the next line, from start
+/// The data pointer is the same as the input data, so it should not be modified, 
+/// and will not be valid if the original strings data is moved. Fx arealloc from append
+/// </summary>
+/// <param name="s">Input string</param>
+/// <returns></returns>
+s8Slice s8_next_line_slice(s8 s, isize start);
 
+b32 s8_starts_with(s8 s, s8 start);
 
 typedef struct {
   c16* data;

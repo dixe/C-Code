@@ -1,12 +1,14 @@
 #pragma once
 #include "s_string.h"
-#include "stdio.h"
 
 typedef struct {
   s8 input_string;
   FILE* fptr;
   isize index;
 } FileIter;
+
+
+s8 file_read_all(Arena *a, FILE* fptr);
 
 /// <summary>
 /// Return the next chunk of string, stopping when chr is reached

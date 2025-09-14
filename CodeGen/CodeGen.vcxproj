@@ -18,11 +18,14 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <PropertyGroup>
+    <EscapedProjectDir>$(ProjectDir.Replace('\', '\\'))</EscapedProjectDir>
+  </PropertyGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{4a259829-21df-4dc3-9ac5-da6814fc00b7}</ProjectGuid>
-    <RootNamespace>Raylibfft</RootNamespace>
+    <ProjectGuid>{ef888e7e-e041-40d3-8cfb-dbd4044b4fb0}</ProjectGuid>
+    <RootNamespace>CodeGen</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -114,20 +117,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);ARRAY_TEMPLATE_DIR="$(ProjectDir)templates\array_template.c"</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>E:\repos\C-Code\Lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\Lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <PreBuildEvent>
-      <Command>$(SolutionDir)\x64\Debug\CodeGen.exe $(ProjectDir)\Gen.cg  $(ProjectDir)\\generated.h $(ProjectDir)\\generated.c</Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>TypeGeneration</Message>
-    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -147,34 +144,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Lib\arena.c" />
-    <ClCompile Include="..\Lib\dyn_array.c" />
-    <ClCompile Include="..\Lib\hashmap.c" />
+    <ClCompile Include="..\Lib\file.c" />
     <ClCompile Include="..\Lib\s_string.c" />
-    <ClCompile Include="generated.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Gen.cg" />
-    <None Include="packages.config" />
+    <ClInclude Include="..\Lib\arena.h" />
+    <ClInclude Include="..\Lib\file.h" />
+    <ClInclude Include="..\Lib\s_string.h" />
+    <ClInclude Include="array_template.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\Lib\arena.h" />
-    <ClInclude Include="..\Lib\custom_types.h" />
-    <ClInclude Include="..\Lib\dyn_array.h" />
-    <ClInclude Include="..\Lib\hashmap.h" />
-    <ClInclude Include="..\Lib\s_string.h" />
-    <ClInclude Include="generated.h" />
-    <ClInclude Include="raygui.h" />
-    <ClInclude Include="types.h" />
+    <None Include="array_template.c">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
-    <Import Project="..\packages\raylib.5.5.0\build\native\raylib.targets" Condition="Exists('..\packages\raylib.5.5.0\build\native\raylib.targets')" />
   </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\raylib.5.5.0\build\native\raylib.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\raylib.5.5.0\build\native\raylib.targets'))" />
-  </Target>
 </Project>

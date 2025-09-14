@@ -13,55 +13,41 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="templates">
+      <UniqueIdentifier>{0e40ccca-bc29-4d3f-80fb-49242069fc5f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Lib\arena.c">
+    <ClCompile Include="..\Lib\file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Lib\hashmap.c">
+    <ClCompile Include="..\Lib\arena.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Lib\s_string.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Lib\dyn_array.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="generated.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="Gen.cg" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\Lib\file.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\Lib\arena.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Lib\custom_types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\Lib\hashmap.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\s_string.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\Lib\dyn_array.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="array_template.h">
+      <Filter>templates</Filter>
     </ClInclude>
-    <ClInclude Include="types.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="raygui.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="generated.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="array_template.c">
+      <Filter>templates</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -4,6 +4,24 @@
 #include "file.h"
 
 
+
+
+s8 file_read_all(Arena *a, FILE* fptr)
+{
+
+  fseek(fptr, 0L, SEEK_END);
+
+  isize file_size = ftell(fptr);
+  fseek(fptr, 0L, SEEK_SET);
+
+  s8 ret = s8_empty(a, file_size);
+
+  ret.byte_len = fread(ret.data, sizeof(u8), ret.capacity, fptr);
+
+  return ret;
+
+}
+
 s8 file_iter_next(Arena* a, FileIter* iter, u8 chr) {
   // Mabe allocate 8/16/32/64 bytes, depending on the arena cap
   s8 ret = { 0 };
