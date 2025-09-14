@@ -31,7 +31,7 @@ Sequence gen_wave_test(Arena* a);
 f64 c_mag(Complex c);
 DrawInfo draw_sequence(Arena* a, Sequence s);
 
-f64 sample_rate = 500;
+f64 sample_rate = 100;
 f32 wave_freq = 0.;
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -168,7 +168,10 @@ DrawInfo draw_sequence(Arena* frame_arena, Sequence s)
 
     if (m > y_max)
     {
-      y_max_idx = i;
+      if (i < (isize)s.count / 2 + 1)
+      {
+        y_max_idx = i;
+      }
       y_max = m;
     }
 
@@ -295,8 +298,8 @@ DftResult dft(Arena* a, Sequence input)
   }  
 
 
-  //f64Arr frequencies  = f64Arr_empty(a, (isize)N / 2 + 1);
-  f64Arr frequencies = f64Arr_empty(a, N);
+  f64Arr frequencies  = f64Arr_empty(a, (isize)N / 2 + 1);
+  //f64Arr frequencies = f64Arr_empty(a, N);
   for (isize k = 0; k < frequencies.capacity; k++)
   {
     double freq = k * sample_rate / N;
@@ -313,7 +316,7 @@ Sequence gen_wave_test(Arena* a)
 {
 
 
-  Sequence s = Sequence_empty(a, 4);
+  /*Sequence s = Sequence_empty(a, 4);
 
   Complex c0 = { 1, 0.0};
   Complex c1 = { 0.0, 0.0};
@@ -325,7 +328,7 @@ Sequence gen_wave_test(Arena* a)
   Sequence_add(a, &s, c2);
   Sequence_add(a, &s, c3);
 
-  return s;
+  return s;*/
 
   // sample 3 sec
   // wave is 1 hz
@@ -342,7 +345,7 @@ Sequence gen_wave_test(Arena* a)
   for (isize i = 0; i < res.capacity; i++)
   {
     Complex c = { 0 };
-    c.r = sin(wave_freq * i * step) + 1;   
+    c.r = sin(wave_freq * i * step);   
 
     Sequence_add(a, &res, c);
   }
