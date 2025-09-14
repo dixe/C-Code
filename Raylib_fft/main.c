@@ -16,13 +16,20 @@ typedef struct {
   f64Arr freq_bins;
 } DftResult;
 
+typedef struct {
+  f64 y_max;
+  f64 y_min;
+  isize y_max_index;
+  isize y_min_index;
+} DrawInfo;
+
 DftResult dft(Arena* a, Sequence input);
 
 Sequence gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
 
 Sequence gen_wave_test(Arena* a);
 f64 c_mag(Complex c);
-void draw_sequence(Arena* a, Sequence s);
+DrawInfo draw_sequence(Arena* a, Sequence s);
 
 f64 sample_rate = 500;
 f32 wave_freq = 0.;
@@ -48,6 +55,8 @@ int main(void)
   Sequence test = gen_wave_test(&perm_arena);
   DftResult dft_res = dft(&perm_arena, test);
   b32 draw_fft = false;
+
+  DrawInfo draw_info;
 
   // Main game loop
   while (!WindowShouldClose())        // Detect window close button or ESC key
@@ -90,13 +99,22 @@ int main(void)
 
     if (draw_fft)
     {
-      draw_sequence(&frame_arena, dft_res.dft_res);
+      draw_info = draw_sequence(&frame_arena, dft_res.dft_res);
     }
     else {
-      draw_sequence(&frame_arena, test);
+      draw_info = draw_sequence(&frame_arena, test);
     }
-    
-     
+
+
+    f64 freq = dft_res.freq_bins.data[draw_info.y_max_index];
+    // Draw frequency bin with highest number
+    number_s = s8_f64_to_s8(&frame_arena, freq, 1);
+    s8 max_freq_s = s8_concat(&frame_arena, s8_from_literal("largests frequency bin = "), number_s);
+    s8_append_zero(&frame_arena, &max_freq_s);
+    DrawText(max_freq_s.data, 300, 20, 20, BLACK);
+
+
+
 
     EndDrawing();
     arena_reset(&frame_arena);
@@ -125,9 +143,17 @@ int main(void)
 //  return a > b ? a : b;
 //}
 
-void draw_sequence(Arena* frame_arena, Sequence s) 
+DrawInfo draw_sequence(Arena* frame_arena, Sequence s)
 {
- 
+
+
+  // draw in rectangle x= 100, y=100, w=1000, h=600
+  i32 x_base = 130;
+  i32 y_base = 100;
+  i32 h = 600;
+  i32 w = 1000;
+
+  DrawRectangle(x_base, y_base, w, h, WHITE);
 
   isize y_max_idx = -1;
   isize y_min_idx = -1;
@@ -138,11 +164,7 @@ void draw_sequence(Arena* frame_arena, Sequence s)
 
   for (isize i = 0; i < s.count; i++)
   {
-    double m = s.data[i].r; // c_mag(s.data[i]);
-    if (m > 100)
-    {
-      isize debug = 2;
-    }
+    double m = s.data[i].r; 
 
     if (m > y_max)
     {
@@ -155,59 +177,15 @@ void draw_sequence(Arena* frame_arena, Sequence s)
       y_min_idx = i;
       y_min = m;
     }
-    //y_max = max(m, y_max);
     
     y_min = min(m, y_min);
-
     x_max = max(i, x_max);
-
     x_min = min(i, x_min);
 
-    //y_min = min(m, y_min);    
-    //x_min = min(v.i, x_min);
-
-    //y_max = max(v.r, y_max);
-    //x_max = max(v.i, x_max);
-    //x_max = max(i, x_max);
-
   }
-
-
-  // draw in rectangle x= 100, y=100, w=1000, h=600
-  i32 x_base = 130;
-  i32 y_base = 100;
-  i32 h = 600;
-  i32 w = 1000; 
   
   DrawRectangle(x_base, y_base, w, h, WHITE);
-
-  // draw line at y = 0;
-  double y0 = 1.0 - (0 - y_min) / (y_max - y_min);
-
-  // draw 0 at 0 line
-  int y_0 = (int)(y0 * h + y_base);
-  DrawText("0", 100, y_0 - 8, 16, BLACK);
-
-  // draw max at top
-  s8 number_s = s8_f64_to_s8(frame_arena, y_max, 2); 
-  s8_append_zero(frame_arena, &number_s);
-  DrawText(number_s.data, x_base- 20, y_base - 20, 16, BLACK);
-
-
-  //draw min at bottom
-  number_s = s8_f64_to_s8(frame_arena, y_min, 2);
-  s8_append_zero(frame_arena, &number_s);
-  DrawText(number_s.data, x_base - 20, y_base + h + 20, 16, BLACK);
-
-  // Draw frequency bin with highest number
-  number_s = s8_isize_to_s8(frame_arena, y_max_idx);
-  s8 max_freq_s = s8_concat(frame_arena, s8_from_literal("largests frequency bin = "), number_s);
-  s8_append_zero(frame_arena, &max_freq_s);
-  DrawText(max_freq_s.data, 300, 20, 20, BLACK);
-
-
-
-  DrawLine(x_base, y_0, x_base + w, y_0, BLACK);
+ 
 
   for (isize i = 0; i < s.count; i++)
   {
@@ -224,13 +202,38 @@ void draw_sequence(Arena* frame_arena, Sequence s)
     double y = 1.0 - (m - y_min) / (y_max - y_min);
     y = y * h;
 
-
     DrawCircle((int)x + x_base, (int)y + y_base, 2, RED);
-
   }
 
 
+  // draw line at y = 0;
+  double y0 = 1.0 - (0 - y_min) / (y_max - y_min);
+
+  // draw 0 at 0 line
+  int y_0 = (int)(y0 * h + y_base);
+  DrawText("0", 100, y_0 - 8, 16, BLACK);
+
+  // draw max at top
+  s8 number_s = s8_f64_to_s8(frame_arena, y_max, 2);
+  s8_append_zero(frame_arena, &number_s);
+  DrawText(number_s.data, x_base - 20, y_base - 20, 16, BLACK);
+
+
+  //draw min at bottom
+  number_s = s8_f64_to_s8(frame_arena, y_min, 2);
+  s8_append_zero(frame_arena, &number_s);
+  DrawText(number_s.data, x_base - 20, y_base + h + 20, 16, BLACK);
+
+ 
+  DrawLine(x_base, y_0, x_base + w, y_0, BLACK);
+
+  return (DrawInfo) { y_max, y_min, y_max_idx, y_min_idx };
+
 }
+
+
+
+
 
 Complex c_mul(Complex c1, Complex c2)
 {
@@ -282,7 +285,7 @@ DftResult dft(Arena* a, Sequence input)
 
       double angle = 2 * PI * k * n / N;
       real += x_n * cos(angle);
-      imag -= x_n * sin(angle);
+      imag += -x_n * sin(angle);
     }
 
     Complex next = { 0 };
@@ -292,7 +295,8 @@ DftResult dft(Arena* a, Sequence input)
   }  
 
 
-  f64Arr frequencies  = f64Arr_empty(a, (isize)N / 2 + 1);
+  //f64Arr frequencies  = f64Arr_empty(a, (isize)N / 2 + 1);
+  f64Arr frequencies = f64Arr_empty(a, N);
   for (isize k = 0; k < frequencies.capacity; k++)
   {
     double freq = k * sample_rate / N;
@@ -308,11 +312,29 @@ DftResult dft(Arena* a, Sequence input)
 Sequence gen_wave_test(Arena* a)
 {
 
+
+  Sequence s = Sequence_empty(a, 4);
+
+  Complex c0 = { 1, 0.0};
+  Complex c1 = { 0.0, 0.0};
+  Complex c2 = { -1, 0 };
+  Complex c3 = { 0, 0 };
+
+  Sequence_add(a, &s, c0);
+  Sequence_add(a, &s, c1);
+  Sequence_add(a, &s, c2);
+  Sequence_add(a, &s, c3);
+
+  return s;
+
   // sample 3 sec
   // wave is 1 hz
   // Sample 10 sec, with sample rate is number of samles
   isize samples = 3 * (isize)sample_rate;
   Sequence res = Sequence_empty(a, samples);
+
+
+  
 
   // each sample is 1/samples of a sec
   f64 step = 2.0 * PI / sample_rate;
