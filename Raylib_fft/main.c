@@ -23,15 +23,18 @@ typedef struct {
   isize y_min_index;
 } DrawInfo;
 
-DftResult dft(Arena* a, Sequence input);
+DftResult dft(Arena* a, f64Arr input);
 
-Sequence gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
+f64Arr gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
 
-Sequence gen_wave_test(Arena* a);
+f64Arr gen_wave_test(Arena* a);
 f64 c_mag(Complex c);
-DrawInfo draw_sequence(Arena* a, Sequence s);
+DrawInfo draw_sequence(Arena* a, f64Arr s);
 
-f64 sample_rate = 100;
+
+f64Arr dft_to_plot_data(Arena* a, Sequence s);
+
+f64 sample_rate = 500;
 f32 wave_freq = 2.;
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -52,11 +55,13 @@ int main(void)
 
   Arena perm_arena = arena_create(512);
 
-  Sequence test = gen_wave_test(&perm_arena);
+  f64Arr test = gen_wave_test(&perm_arena);
   DftResult dft_res = dft(&perm_arena, test);
   b32 draw_fft = false;
 
   DrawInfo draw_info;
+
+  f64Arr dft_plot_data = { 0 };
 
   // Main game loop
   while (!WindowShouldClose())        // Detect window close button or ESC key
@@ -81,16 +86,19 @@ int main(void)
     s8_append_zero(&frame_arena, &number_s);
     DrawText(number_s.data, 250, 20, 16, BLACK);
 
-    if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Reload test Data"))
+    if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Reload Data"))
     {
       arena_reset(&perm_arena);
       test = gen_wave_test(&perm_arena);
       dft_res = dft(&perm_arena, test);
+      dft_plot_data.count = 0;
+      dft_plot_data.capacity = 0;
     }
 
     if (GuiButton((Rectangle) { 10, 100, 80, 40 }, "Swith"))
     {
       draw_fft = !draw_fft;
+      
     }
 
     BeginDrawing();
@@ -99,7 +107,12 @@ int main(void)
 
     if (draw_fft)
     {
-      draw_info = draw_sequence(&frame_arena, dft_res.dft_res);
+      if (dft_plot_data.count == 0)
+      {
+        dft_plot_data = dft_to_plot_data(&perm_arena, dft_res.dft_res);
+      }
+
+      draw_info = draw_sequence(&frame_arena, dft_plot_data);
     }
     else {
       draw_info = draw_sequence(&frame_arena, test);
@@ -129,23 +142,22 @@ int main(void)
   return 0;
 }
 
-//--------------------------------------------------------------------------------------
-// Module functions definition
-//--------------------------------------------------------------------------------------
-//
-//double min(double a, double b)
-//{
-//  return a < b ? a : b;
-//}
-
-//double max(double a, double b)
-//{
-//  return a > b ? a : b;
-//}
-
-DrawInfo draw_sequence(Arena* frame_arena, Sequence s)
+f64Arr dft_to_plot_data(Arena* a,Sequence s)
 {
+  // just get real data 
+  f64Arr res = f64Arr_empty(a, s.count);
 
+  res.count = s.count;
+  for (isize i = 0; i < s.count; i++)
+  {
+    res.data[i] = fabs(s.data[i].r);
+  }
+  return res;
+}
+
+//TODO: Maybe take draw info as input, so we don't have to compute everytime
+DrawInfo draw_sequence(Arena* frame_arena, f64Arr s)
+{
   // draw in rectangle x= 100, y=100, w=1000, h=600
   i32 x_base = 130;
   i32 y_base = 100;
@@ -163,14 +175,11 @@ DrawInfo draw_sequence(Arena* frame_arena, Sequence s)
 
   for (isize i = 0; i < s.count; i++)
   {
-    double m = s.data[i].r; 
+    double m = s.data[i]; 
 
     if (m > y_max)
     {
-      if (i < (isize)s.count / 2 + 1)
-      {
-        y_max_idx = i;
-      }
+      y_max_idx = i;     
       y_max = m;
     }
 
@@ -191,10 +200,8 @@ DrawInfo draw_sequence(Arena* frame_arena, Sequence s)
 
   for (isize i = 0; i < s.count; i++)
   {
-    double m = s.data[i].r; // c_mag(s.data[i]);
-    //double m = c_mag(s.data[i]);
-    // map x into range 0-1000
-    
+    double m = s.data[i];
+
     // range lerp
     // 0 - 1 range, inversed
     double x =  (i - x_min) / (x_max - x_min);
@@ -263,8 +270,9 @@ Complex c_add(Complex a, Complex b)
      
 }
 
-//
-DftResult dft(Arena* a, Sequence input)
+// Only comutes the first half, since the rest is not use full when using real values, negative frequemcies
+// for inverse we might need it again
+DftResult dft(Arena* a, f64Arr input)
 {
   DftResult res = { 0 };
   
@@ -283,7 +291,7 @@ DftResult dft(Arena* a, Sequence input)
     f64 imag = 0.0;
     for (isize i = 0; i < N; i++)
     {
-      f64 x_n = input.data[i].r;
+      f64 x_n = input.data[i];
       double n = (double)i;
 
       double angle = 2 * PI * k * n / N;
@@ -311,63 +319,35 @@ DftResult dft(Arena* a, Sequence input)
   return res;
 }
 
-
-Sequence gen_wave_test(Arena* a)
+f64Arr gen_wave_test(Arena* a)
 {
-
-
-  /*Sequence s = Sequence_empty(a, 4);
-
-  Complex c0 = { 1, 0.0};
-  Complex c1 = { 0.0, 0.0};
-  Complex c2 = { -1, 0 };
-  Complex c3 = { 0, 0 };
-
-  Sequence_add(a, &s, c0);
-  Sequence_add(a, &s, c1);
-  Sequence_add(a, &s, c2);
-  Sequence_add(a, &s, c3);
-
-  return s;*/
-
   // sample 3 sec
   // wave is 1 hz
   // Sample 10 sec, with sample rate is number of samles
   isize samples = 3 * (isize)sample_rate;
-  Sequence res = Sequence_empty(a, samples);
+  f64Arr res = f64Arr_empty(a, samples);
 
   // each sample is 1/samples of a sec
   f64 step = 2.0 * PI / sample_rate;
   
   for (isize i = 0; i < res.capacity; i++)
   {
-    Complex c = { 0 };
-    c.r = sin(wave_freq * i * step) * 100;
+    f64 v = sin(wave_freq * i * step) * 100;
 
-    c.r += sin((wave_freq+3) * i * step) * 100;
+    v += sin((wave_freq + 1) * i * step) * 100;
+    v += sin((wave_freq + 100) * i * step) * 50;
 
-    Sequence_add(a, &res, c);
+    f64Arr_add(a, &res, v);
   }
 
   return res;
 }
 
-
-
-Sequence gen_wave(Arena* a, double freq, isize sample_freq_khz, isize samples)
+f64Arr gen_wave(Arena* a, double freq, isize sample_freq_khz, isize samples)
 {
-  Sequence res = Sequence_empty(a, samples);
+  f64Arr res = f64Arr_empty(a, samples);
 
-  double x = 1.0 / ((double)sample_freq_khz * 1000.0) * freq;
-  for (isize i = 0; i < samples; i++)
-  {
-    Complex c = { 0 };
-
-    c.r = sin((double)i * freq);
-    c.i = (double)i;
-
-    Sequence_add(a, &res, c);
-  }
+  
 
   return res;
 }
