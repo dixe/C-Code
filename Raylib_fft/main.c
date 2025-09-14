@@ -150,7 +150,7 @@ f64Arr dft_to_plot_data(Arena* a,Sequence s)
   res.count = s.count;
   for (isize i = 0; i < s.count; i++)
   {
-    res.data[i] = fabs(s.data[i].r);
+    res.data[i] = c_mag(s.data[i]);
   }
   return res;
 }
@@ -240,10 +240,6 @@ DrawInfo draw_sequence(Arena* frame_arena, f64Arr s)
 
 }
 
-
-
-
-
 Complex c_mul(Complex c1, Complex c2)
 {
   Complex res = { 0 };
@@ -332,10 +328,10 @@ f64Arr gen_wave_test(Arena* a)
   
   for (isize i = 0; i < res.capacity; i++)
   {
-    f64 v = sin(wave_freq * i * step) * 100;
+    f64 v = sin(wave_freq * i * step);
 
-    v += sin((wave_freq + 1) * i * step) * 100;
-    v += sin((wave_freq + 100) * i * step) * 50;
+    v += sin((wave_freq + 1) * i * step);
+    v += sin((wave_freq + 100) * i * step) * 0.5;
 
     f64Arr_add(a, &res, v);
   }
