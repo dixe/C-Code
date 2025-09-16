@@ -71,17 +71,17 @@ void pl_plot(Arena* frame_arena,  Plot p, PlotData pd)
     double y = 1.0 - (m - p.info.y_min) / (p.info.y_max - p.info.y_min);
     y = y * p.info.h;
 
-    pd.draw_elm((int)x + p.info.x_base, (int)y + p.info.y_base, p.info);
+    pd.draw_elm((int)x + p.info.x_base, (int)y + p.info.y_base, p.info, pd.color);
   }
 }
 
-void pl_draw_dot_fn(int x, int y, DrawInfo info)
+void pl_draw_dot_fn(int x, int y, DrawInfo info, Color color)
 {
-  DrawCircle(x, y, 2, RED);
+  DrawCircle(x, y, 2, color);
 }
 
-void pl_draw_dft_fn(int x, int y, DrawInfo info)
+void pl_draw_dft_fn(int x, int y, DrawInfo info, Color color)
 {
   DrawLine(x, y, x, info.y_base + info.h, RED);
-  DrawCircle(x, y, 2, RED);
+  DrawCircle(x, y, 2, color);
 }

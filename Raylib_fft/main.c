@@ -67,6 +67,7 @@ int main(void)
   plot.info.w = 1000;
 
   PlotData plot_data = { 0 };
+  plot_data.color = RED;
   set_plot_data(&plot_data, test);
   plot_data.draw_elm = &pl_draw_dot_fn;
   pl_update_plot_info(&plot, &plot_data);

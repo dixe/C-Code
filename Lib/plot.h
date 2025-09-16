@@ -2,6 +2,8 @@
 
 #include "custom_types.h"
 #include "arena.h"
+#include "raylib.h"
+
 
 typedef struct {
   f64 x_max;
@@ -24,9 +26,10 @@ typedef struct
 
 typedef struct
 {
-  f64* data;
+  Color color;
+  void (*draw_elm)(int, int, DrawInfo, Color);
   isize count;
-  void (*draw_elm)(int, int, DrawInfo);
+  f64* data;  
 } PlotData;
 
 /// <summary>
@@ -39,6 +42,6 @@ void pl_update_plot_info(Plot* plot, PlotData* plot_data);
 
 void pl_plot(Arena* frame_arena, Plot p, PlotData pd);
 
-void pl_draw_dot_fn(int x, int y, DrawInfo info);
+void pl_draw_dot_fn(int x, int y, DrawInfo info, Color color);
 
-void pl_draw_dft_fn(int x, int y, DrawInfo info);
+void pl_draw_dft_fn(int x, int y, DrawInfo info, Color color);
