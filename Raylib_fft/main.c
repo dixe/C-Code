@@ -17,10 +17,17 @@ typedef struct {
 } DftResult;
 
 typedef struct {
+  f64 x_max;
+  f64 x_min;
   f64 y_max;
   f64 y_min;
   isize y_max_index;
   isize y_min_index;
+  i32 x_base;
+  i32 y_base;
+  i32 h;
+  i32 w;
+
 } DrawInfo;
 
 DftResult dft(Arena* a, f64Arr input);
@@ -29,10 +36,73 @@ f64Arr gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
 
 f64Arr gen_wave_test(Arena* a);
 f64 c_mag(Complex c);
-DrawInfo draw_sequence(Arena* a, f64Arr s);
-
 
 f64Arr dft_to_plot_data(Arena* a, Sequence s);
+
+typedef struct
+{
+  DrawInfo info;
+} Plot;
+
+typedef struct
+{
+  f64Arr data;
+  void (*draw_elm)(int, int, DrawInfo);
+} PlotData;
+
+Plot pl_create_plot();
+
+
+Plot pl_create_plot() 
+{
+  Plot p = { 0 };
+  return p;
+}
+
+
+void pl_update_plot_info(Plot *plot, PlotData* plot_data)
+{
+  plot->info.y_max_index = -1;
+  plot->info.y_min_index = -1;
+  
+  plot->info.x_min = 1000000000;
+  plot->info.y_min = 1000000000;
+  plot->info.x_max = -1000000000;
+  plot->info.y_max = -1000000000;
+
+  for (isize i = 0; i < plot_data->data.count; i++)
+  {
+    double m = plot_data->data.data[i];
+
+    if (m > plot->info.y_max)
+    {
+      plot->info.y_max_index = i;
+      plot->info.y_max = m;
+    }
+
+    if (m < plot->info.y_min)
+    {
+      plot->info.y_min_index = i;
+      plot->info.y_min = m;
+    }
+    plot->info.x_max = max((double)i, plot->info.x_max);
+    plot->info.x_min = min((double)i, plot->info.x_min);
+  }
+}
+
+void pl_plot(Plot p, PlotData pd);
+
+void pl_draw_dot_fn(int x, int y, DrawInfo info)
+{
+  DrawCircle(x, y, 2, RED);
+}
+
+void pl_draw_dft_fn(int x, int y, DrawInfo info)
+{
+  DrawLine(x, y, x, info.y_base + info.h, RED);
+  DrawCircle(x, y, 2, RED);
+}
+
 
 f64 sample_rate = 300;
 f32 wave_freq = 2.;
@@ -59,8 +129,21 @@ int main(void)
   DftResult dft_res = dft(&perm_arena, test);
   b32 draw_fft = false;
 
-  DrawInfo draw_info;
+  
+  Plot plot = { 0 };
+  plot.info.x_base = 130;
+  plot.info.y_base = 100;
+  plot.info.h = 600;
+  plot.info.w = 1000;
 
+  PlotData plot_data = { 0 };
+
+  plot_data.data = test;
+  plot_data.draw_elm = &pl_draw_dot_fn;
+
+  pl_update_plot_info(&plot, &plot_data);
+
+  
   f64Arr dft_plot_data = { 0 };
 
   // Main game loop
@@ -98,6 +181,19 @@ int main(void)
     if (GuiButton((Rectangle) { 10, 100, 80, 40 }, "Swith"))
     {
       draw_fft = !draw_fft;
+      if (draw_fft)
+      {
+        plot_data.data = dft_to_plot_data(&perm_arena, dft_res.dft_res);
+        plot_data.draw_elm = &pl_draw_dft_fn;
+        
+      }
+      else 
+      {     
+          plot_data.data = test; 
+          plot_data.draw_elm = &pl_draw_dot_fn;      
+      }
+
+      pl_update_plot_info(&plot, &plot_data);
       
     }
 
@@ -105,26 +201,15 @@ int main(void)
 
     ClearBackground(RAYWHITE);
 
-    if (draw_fft)
-    {
-      if (dft_plot_data.count == 0)
-      {
-        dft_plot_data = dft_to_plot_data(&perm_arena, dft_res.dft_res);
-      }
 
-      draw_info = draw_sequence(&frame_arena, dft_plot_data);
-    }
-    else {
-      draw_info = draw_sequence(&frame_arena, test);
-    }
+    pl_plot(plot, plot_data);
 
-
-    f64 freq = dft_res.freq_bins.data[draw_info.y_max_index];
-    // Draw frequency bin with highest number
-    number_s = s8_f64_to_s8(&frame_arena, freq, 1);
-    s8 max_freq_s = s8_concat(&frame_arena, s8_from_literal("largests frequency bin = "), number_s);
-    s8_append_zero(&frame_arena, &max_freq_s);
-    DrawText(max_freq_s.data, 300, 20, 20, BLACK);
+    //f64 freq = dft_res.freq_bins.data[draw_info.y_max_index];
+    //// Draw frequency bin with highest number
+    //number_s = s8_f64_to_s8(&frame_arena, freq, 1);
+    //s8 max_freq_s = s8_concat(&frame_arena, s8_from_literal("largests frequency bin = "), number_s);
+    //s8_append_zero(&frame_arena, &max_freq_s);
+    //DrawText(max_freq_s.data, 300, 20, 20, BLACK);
 
 
 
@@ -155,89 +240,26 @@ f64Arr dft_to_plot_data(Arena* a,Sequence s)
   return res;
 }
 
-//TODO: Maybe take draw info as input, so we don't have to compute everytime
-DrawInfo draw_sequence(Arena* frame_arena, f64Arr s)
+void pl_plot(Plot p, PlotData pd)
 {
-  // draw in rectangle x= 100, y=100, w=1000, h=600
-  i32 x_base = 130;
-  i32 y_base = 100;
-  i32 h = 600;
-  i32 w = 1000;
 
-  DrawRectangle(x_base, y_base, w, h, WHITE);
+  DrawRectangle(p.info.x_base, p.info.y_base, p.info.w, p.info.h, WHITE);
 
-  isize y_max_idx = -1;
-  isize y_min_idx = -1;
-  double x_min = 1000000000;
-  double y_min = 1000000000;
-  double x_max = -1000000000;
-  double y_max = -1000000000;
-
-  for (isize i = 0; i < s.count; i++)
+  for (isize i = 0; i < pd.data.count; i++)
   {
-    double m = s.data[i]; 
-
-    if (m > y_max)
-    {
-      y_max_idx = i;     
-      y_max = m;
-    }
-
-    if (m < y_min)
-    {
-      y_min_idx = i;
-      y_min = m;
-    }
-    
-    y_min = min(m, y_min);
-    x_max = max(i, x_max);
-    x_min = min(i, x_min);
-
-  }
-  
-  DrawRectangle(x_base, y_base, w, h, WHITE);
- 
-
-  for (isize i = 0; i < s.count; i++)
-  {
-    double m = s.data[i];
+    double m = pd.data.data[i];
 
     // range lerp
     // 0 - 1 range, inversed
-    double x =  (i - x_min) / (x_max - x_min);
-    x = x * w;;
+    double x = (i - p.info.x_min) / (p.info.x_max - p.info.x_min);
+    x = x * p.info.w;;
 
     // 0 - 1 range, inversed since screen space coordinate system i 0,0 at top left, and not bottom
-    double y = 1.0 - (m - y_min) / (y_max - y_min);
-    y = y * h;
+    double y = 1.0 - (m - p.info.y_min) / (p.info.y_max - p.info.y_min);
+    y = y * p.info.h;
 
-    DrawCircle((int)x + x_base, (int)y + y_base, 2, RED);
+    pd.draw_elm((int)x + p.info.x_base, (int)y + p.info.y_base, p.info);
   }
-
-
-  // draw line at y = 0;
-  double y0 = 1.0 - (0 - y_min) / (y_max - y_min);
-
-  // draw 0 at 0 line
-  int y_0 = (int)(y0 * h + y_base);
-  DrawText("0", 100, y_0 - 8, 16, BLACK);
-
-  // draw max at top
-  s8 number_s = s8_f64_to_s8(frame_arena, y_max, 2);
-  s8_append_zero(frame_arena, &number_s);
-  DrawText(number_s.data, x_base - 20, y_base - 20, 16, BLACK);
-
-
-  //draw min at bottom
-  number_s = s8_f64_to_s8(frame_arena, y_min, 2);
-  s8_append_zero(frame_arena, &number_s);
-  DrawText(number_s.data, x_base - 20, y_base + h + 20, 16, BLACK);
-
- 
-  DrawLine(x_base, y_0, x_base + w, y_0, BLACK);
-
-  return (DrawInfo) { y_max, y_min, y_max_idx, y_min_idx };
-
 }
 
 Complex c_mul(Complex c1, Complex c2)
