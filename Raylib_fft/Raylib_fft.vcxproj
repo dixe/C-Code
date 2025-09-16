@@ -149,6 +149,7 @@
     <ClCompile Include="..\Lib\arena.c" />
     <ClCompile Include="..\Lib\dyn_array.c" />
     <ClCompile Include="..\Lib\hashmap.c" />
+    <ClCompile Include="..\Lib\plot.c" />
     <ClCompile Include="..\Lib\s_string.c" />
     <ClCompile Include="generated.c" />
     <ClCompile Include="main.c" />
@@ -162,6 +163,7 @@
     <ClInclude Include="..\Lib\custom_types.h" />
     <ClInclude Include="..\Lib\dyn_array.h" />
     <ClInclude Include="..\Lib\hashmap.h" />
+    <ClInclude Include="..\Lib\plot.h" />
     <ClInclude Include="..\Lib\s_string.h" />
     <ClInclude Include="generated.h" />
     <ClInclude Include="raygui.h" />

@@ -9,26 +9,14 @@
 #include "hashmap.h"
 #include "types.h"
 #include "generated.h"
-
+#include "plot.h"
 
 typedef struct {
   Sequence dft_res;
   f64Arr freq_bins;
 } DftResult;
 
-typedef struct {
-  f64 x_max;
-  f64 x_min;
-  f64 y_max;
-  f64 y_min;
-  isize y_max_index;
-  isize y_min_index;
-  i32 x_base;
-  i32 y_base;
-  i32 h;
-  i32 w;
 
-} DrawInfo;
 
 DftResult dft(Arena* a, f64Arr input);
 
@@ -39,70 +27,12 @@ f64 c_mag(Complex c);
 
 f64Arr dft_to_plot_data(Arena* a, Sequence s);
 
-typedef struct
+
+void set_plot_data(PlotData *p, f64Arr data)
 {
-  DrawInfo info;
-} Plot;
-
-typedef struct
-{
-  f64Arr data;
-  void (*draw_elm)(int, int, DrawInfo);
-} PlotData;
-
-Plot pl_create_plot();
-
-
-Plot pl_create_plot() 
-{
-  Plot p = { 0 };
-  return p;
+  p->count = data.count;
+  p->data = data.data;
 }
-
-
-void pl_update_plot_info(Plot *plot, PlotData* plot_data)
-{
-  plot->info.y_max_index = -1;
-  plot->info.y_min_index = -1;
-  
-  plot->info.x_min = 1000000000;
-  plot->info.y_min = 1000000000;
-  plot->info.x_max = -1000000000;
-  plot->info.y_max = -1000000000;
-
-  for (isize i = 0; i < plot_data->data.count; i++)
-  {
-    double m = plot_data->data.data[i];
-
-    if (m > plot->info.y_max)
-    {
-      plot->info.y_max_index = i;
-      plot->info.y_max = m;
-    }
-
-    if (m < plot->info.y_min)
-    {
-      plot->info.y_min_index = i;
-      plot->info.y_min = m;
-    }
-    plot->info.x_max = max((double)i, plot->info.x_max);
-    plot->info.x_min = min((double)i, plot->info.x_min);
-  }
-}
-
-void pl_plot(Plot p, PlotData pd);
-
-void pl_draw_dot_fn(int x, int y, DrawInfo info)
-{
-  DrawCircle(x, y, 2, RED);
-}
-
-void pl_draw_dft_fn(int x, int y, DrawInfo info)
-{
-  DrawLine(x, y, x, info.y_base + info.h, RED);
-  DrawCircle(x, y, 2, RED);
-}
-
 
 f64 sample_rate = 300;
 f32 wave_freq = 2.;
@@ -137,13 +67,10 @@ int main(void)
   plot.info.w = 1000;
 
   PlotData plot_data = { 0 };
-
-  plot_data.data = test;
+  set_plot_data(&plot_data, test);
   plot_data.draw_elm = &pl_draw_dot_fn;
-
   pl_update_plot_info(&plot, &plot_data);
 
-  
   f64Arr dft_plot_data = { 0 };
 
   // Main game loop
@@ -183,13 +110,12 @@ int main(void)
       draw_fft = !draw_fft;
       if (draw_fft)
       {
-        plot_data.data = dft_to_plot_data(&perm_arena, dft_res.dft_res);
-        plot_data.draw_elm = &pl_draw_dft_fn;
-        
+        set_plot_data(&plot_data, dft_to_plot_data(&perm_arena, dft_res.dft_res));
+        plot_data.draw_elm = &pl_draw_dft_fn;        
       }
       else 
       {     
-          plot_data.data = test; 
+          set_plot_data(&plot_data, test);
           plot_data.draw_elm = &pl_draw_dot_fn;      
       }
 
@@ -202,7 +128,7 @@ int main(void)
     ClearBackground(RAYWHITE);
 
 
-    pl_plot(plot, plot_data);
+    pl_plot(&frame_arena, plot, plot_data);
 
     //f64 freq = dft_res.freq_bins.data[draw_info.y_max_index];
     //// Draw frequency bin with highest number
@@ -240,27 +166,6 @@ f64Arr dft_to_plot_data(Arena* a,Sequence s)
   return res;
 }
 
-void pl_plot(Plot p, PlotData pd)
-{
-
-  DrawRectangle(p.info.x_base, p.info.y_base, p.info.w, p.info.h, WHITE);
-
-  for (isize i = 0; i < pd.data.count; i++)
-  {
-    double m = pd.data.data[i];
-
-    // range lerp
-    // 0 - 1 range, inversed
-    double x = (i - p.info.x_min) / (p.info.x_max - p.info.x_min);
-    x = x * p.info.w;;
-
-    // 0 - 1 range, inversed since screen space coordinate system i 0,0 at top left, and not bottom
-    double y = 1.0 - (m - p.info.y_min) / (p.info.y_max - p.info.y_min);
-    y = y * p.info.h;
-
-    pd.draw_elm((int)x + p.info.x_base, (int)y + p.info.y_base, p.info);
-  }
-}
 
 Complex c_mul(Complex c1, Complex c2)
 {
