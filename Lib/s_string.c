@@ -226,6 +226,10 @@ b32 s8_equals(s8 s1, s8 s2)
   return cmp == 0;
 }
 
+void s8_append_c_str(Arena* a, s8* dest, char* src)
+{
+  s8_append(a, dest, s8_from_c_str(src));
+}
 
 void s8_append(Arena* a, s8* dest, s8 src)
 {

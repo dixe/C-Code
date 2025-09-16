@@ -84,6 +84,7 @@ s8 s8_concat(Arena* a, s8 s1, s8 s2);
 
 b32 s8_equals(s8 s1, s8 s2);
 
+void s8_append_c_str(Arena* a, s8* dest, char* src);
 
 /// <summary>
 /// Appends src[src_start;src_end] to dest. If dest has capacity, resuse memory, otherwise realloc in Arena a

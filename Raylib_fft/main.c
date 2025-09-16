@@ -13,7 +13,7 @@
 
 typedef struct {
   Sequence dft_res;
-  f64Arr freq_bins;
+  f64Arr peak_frequencies;
 } DftResult;
 
 
@@ -27,6 +27,7 @@ f64 c_mag(Complex c);
 
 f64Arr dft_to_plot_data(Arena* a, Sequence s);
 
+void remove_freq();
 
 void set_plot_data(PlotData *p, f64Arr data)
 {
@@ -34,7 +35,7 @@ void set_plot_data(PlotData *p, f64Arr data)
   p->data = data.data;
 }
 
-f64 sample_rate = 300;
+f64 sample_rate = 2000;
 f32 wave_freq = 2.;
 //------------------------------------------------------------------------------------
 // Program main entry point
@@ -89,6 +90,8 @@ int main(void)
     Sequence_add(&frame_arena, &s, c2);
     Sequence_add(&frame_arena, &s, c3);
 
+
+    ///// UI CODE /////////
     if (GuiSlider ((Rectangle) { 100, 10, 120, 40 }, "1", "30", &wave_freq, 1, 30)){
       wave_freq = (f32)((int)wave_freq);
     }
@@ -120,23 +123,44 @@ int main(void)
           plot_data.draw_elm = &pl_draw_dot_fn;      
       }
 
-      pl_update_plot_info(&plot, &plot_data);
-      
+      pl_update_plot_info(&plot, &plot_data);      
     }
+
+   
 
     BeginDrawing();
 
     ClearBackground(RAYWHITE);
 
-
     pl_plot(&frame_arena, plot, plot_data);
 
-    //f64 freq = dft_res.freq_bins.data[draw_info.y_max_index];
-    //// Draw frequency bin with highest number
-    //number_s = s8_f64_to_s8(&frame_arena, freq, 1);
-    //s8 max_freq_s = s8_concat(&frame_arena, s8_from_literal("largests frequency bin = "), number_s);
-    //s8_append_zero(&frame_arena, &max_freq_s);
-    //DrawText(max_freq_s.data, 300, 20, 20, BLACK);
+    if (dft_res.peak_frequencies.count > 0)
+    {
+      number_s = s8_isize_to_s8(&frame_arena, dft_res.peak_frequencies.count);
+      s8 freq_s = s8_concat(&frame_arena, s8_from_literal("Peak frequencies ("), number_s);
+      s8_append_c_str(&frame_arena, &freq_s, ") ");
+
+      for (isize i = 0; i < dft_res.peak_frequencies.count; i++)
+      {
+        number_s = s8_f64_to_s8(&frame_arena, dft_res.peak_frequencies.data[i], 1);
+        s8_append(&frame_arena, &freq_s, number_s);
+        if (i < dft_res.peak_frequencies.count - 1)
+        {
+          s8_append_c_str(&frame_arena, &freq_s, " ,");
+        }
+
+        s8 button_text = s8_concat(&frame_arena, s8_from_literal("Remove F: "), number_s);
+        s8_append_zero(&frame_arena, &button_text);
+        if (GuiButton((Rectangle) { (f32)10, (f32)150 + i * 50, (f32)80, (f32)40 }, button_text.data))
+        {
+          remove_freq();
+
+        }
+      }
+
+      s8_append_zero(&frame_arena, &freq_s);
+      DrawText(freq_s.data, 300, 20, 20, BLACK);
+    }
 
 
 
@@ -153,6 +177,7 @@ int main(void)
 
   return 0;
 }
+
 
 f64Arr dft_to_plot_data(Arena* a,Sequence s)
 {
@@ -206,7 +231,7 @@ DftResult dft(Arena* a, f64Arr input)
   res.dft_res.capacity = input.capacity;
   res.dft_res.count = 0;
   res.dft_res.data = arena_alloc(a, Complex, input.count);
-  
+  res.peak_frequencies = f64Arr_empty(a, 5);
   // only compute the first N/2 values, since the rest are useless for realtime data
   for (isize k = 0; k < N/2 + 1; k++)
   {
@@ -227,20 +252,21 @@ DftResult dft(Arena* a, f64Arr input)
     next.r = real;
     next.i = imag;
     Sequence_add(a, &res.dft_res, next);
+
+    // add peaks to output
+    if (c_mag(next) > 1.0)
+    {
+      double freq = k * sample_rate / N;
+      f64Arr_add(a, &res.peak_frequencies, freq);
+    }
   }  
 
-
-  f64Arr frequencies  = f64Arr_empty(a, (isize)N / 2 + 1);
-  //f64Arr frequencies = f64Arr_empty(a, N);
-  for (isize k = 0; k < frequencies.capacity; k++)
-  {
-    double freq = k * sample_rate / N;
-    f64Arr_add(a, &frequencies, freq);
-  }
-
-  res.freq_bins = frequencies;
-
   return res;
+}
+
+void remove_freq()
+{
+
 }
 
 f64Arr gen_wave_test(Arena* a)
