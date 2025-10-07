@@ -29,6 +29,7 @@ typedef struct {
 
 
 DftResult dft(Arena* a, f64Arr input);
+f64Arr dft_inv(Arena* a, Sequence input);
 
 f64Arr gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
 
@@ -85,6 +86,9 @@ int main(void)
     Sequence_add(&ctx.frame_arena, &s, c3);
 
 
+    f32 next_button_y = 10;
+    f32 button_y_inc = 50;
+
     ///// UI CODE /////////
     if (GuiSlider ((Rectangle) { 100, 10, 120, 40 }, "1", "30", &wave_freq, 1, 30)){
       wave_freq = (f32)((int)wave_freq);
@@ -94,7 +98,7 @@ int main(void)
     s8_append_zero(&ctx.frame_arena, &number_s);
     DrawText(number_s.data, 250, 20, 16, BLACK);
 
-    if (GuiButton((Rectangle) { 10, 10, 80, 40 }, "Reload Data"))
+    if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Reload Data"))
     {
       arena_reset(&ctx.perm_arena);
       ctx.test = gen_wave_test(&ctx.perm_arena);
@@ -102,12 +106,22 @@ int main(void)
       ctx.dft_plot_data.count = 0;
       ctx.dft_plot_data.capacity = 0;
     }
+    next_button_y += button_y_inc;
 
-    if (GuiButton((Rectangle) { 10, 100, 80, 40 }, "Swith"))
+    if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Inverse_dft"))
+    {     
+      ctx.test = dft_inv(&ctx.perm_arena, ctx.dft_res.seq);
+      update_plot_data();
+    }
+
+    next_button_y += button_y_inc;
+
+    if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Swith"))
     {
       ctx.draw_fft = !ctx.draw_fft;
       update_plot_data();
     }
+    next_button_y += button_y_inc;
 
    
 
@@ -134,10 +148,12 @@ int main(void)
 
         s8 button_text = s8_concat(&ctx.frame_arena, s8_from_literal("Remove F: "), number_s);
         s8_append_zero(&ctx.frame_arena, &button_text);
-        if (GuiButton((Rectangle) { (f32)10, (f32)150 + i * 50, (f32)80, (f32)40 }, button_text.data))
+
+        if (GuiButton((Rectangle) { (f32)10, next_button_y, (f32)80, (f32)40 }, button_text.data))
         {
           remove_freq(&ctx.dft_res, ctx.dft_res.peak_frequencies.data[i]);
         }
+        next_button_y += button_y_inc;
       }
 
       s8_append_zero(&ctx.frame_arena, &freq_s);
@@ -290,6 +306,43 @@ DftResult dft(Arena* a, f64Arr input)
 
   return res;
 }
+
+
+f64Arr dft_inv(Arena* a, Sequence input)
+{
+  f64Arr res = { 0 };
+
+  isize N = input.count  * 2;
+
+  res.capacity = input.capacity;
+  res.count = 0;
+  res.data = arena_alloc(a, f64, N);
+   
+  for (isize n = 0; n < N; n++)
+  {
+
+    Complex r = { 0 };
+    
+    // maybe we need to go to N, but it seems like we can just do the first half
+    for (isize k = 0; k < N/2; k++)
+    {
+      Complex x_k = input.data[k];
+      double angle = 2.0 * PI * k * n / N;
+      Complex c = { 0 };
+      c.r = cos(angle);
+      c.i= sin(angle);
+      Complex tmp = c_mul(x_k, c);
+      r = c_add(tmp, r);
+    }
+
+
+    f64Arr_add(a, &res, r.r * 1.0 / N);
+
+  }
+
+  return res;
+}
+
 
 void remove_freq(DftResult* dft_res, PeakFreq peak_f)
 {
