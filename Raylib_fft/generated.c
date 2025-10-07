@@ -34,3 +34,19 @@ void f64Arr_add(Arena* arena, f64Arr* arr, f64 elm)
   arr->count++;
 };
 
+PeakFreqArray PeakFreqArray_empty(Arena* arena,isize capacity)
+{
+  PeakFreqArray res = { 0 };
+  res.capacity = capacity;
+  res.data = arena_alloc(arena, PeakFreq, capacity);
+  return res;
+
+}
+
+void PeakFreqArray_add(Arena* arena, PeakFreqArray* arr, PeakFreq elm)
+{
+  arr->data = arr_grow(arena, arr->count, &arr->capacity, sizeof(PeakFreq), arr->data);
+  arr->data[arr->count] = elm;
+  arr->count++;
+};
+

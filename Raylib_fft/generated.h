@@ -27,3 +27,15 @@ f64Arr f64Arr_empty(Arena* arena, isize capacity);
 
 void f64Arr_add(Arena* arena, f64Arr* s, f64 c);;
 
+
+typedef struct {
+  isize count;
+  isize capacity;
+  PeakFreq* data;
+} PeakFreqArray;
+
+
+PeakFreqArray PeakFreqArray_empty(Arena* arena, isize capacity);
+
+void PeakFreqArray_add(Arena* arena, PeakFreqArray* s, PeakFreq c);;
+

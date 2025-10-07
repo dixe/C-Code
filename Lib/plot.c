@@ -32,7 +32,7 @@ void pl_update_plot_info(Plot* plot, PlotData* plot_data)
   }
 }
 
-void pl_plot(Arena* frame_arena,  Plot p, PlotData pd)
+void pl_plot(Arena* frame_arena, Plot p, PlotData pd)
 {
 
   DrawRectangle(p.info.x_base, p.info.y_base, p.info.w, p.info.h, WHITE);
