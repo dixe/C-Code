@@ -14,6 +14,7 @@
 typedef struct {
   Sequence seq;
   PeakFreqArray peak_frequencies;
+  f64 N;
 } DftResult;
 
 typedef struct {
@@ -26,6 +27,7 @@ typedef struct {
   Plot plot;
   PlotData plot_data;
   f64Arr dft_plot_data;
+  i64 operations;
 } Context;
 
 
@@ -246,7 +248,7 @@ void update_plot_data()
   pl_update_plot_info(&ctx.plot, &ctx.plot_data);
 }
 
-f64Arr dft_to_plot_data(Arena* a,Sequence s)
+f64Arr dft_to_plot_data(Arena* a, Sequence s)
 {
   // just get real data 
   f64Arr res = f64Arr_empty(a, s.count);
@@ -258,7 +260,6 @@ f64Arr dft_to_plot_data(Arena* a,Sequence s)
   }
   return res;
 }
-
 
 Complex c_mul(Complex c1, Complex c2)
 {
@@ -292,6 +293,7 @@ Complex c_sub(Complex a, Complex b)
   return c;
 
 }
+
 DftResult transform(f64Arr input)
 {
   if (ctx.use_dft)
@@ -309,12 +311,14 @@ DftResult dft(Arena* a, f64Arr input)
 {
   DftResult res = { 0 };
   
-
+  ctx.operations = 0;
   double N = (double)input.count;
 
   res.seq.capacity = input.capacity;
   res.seq.count = 0;
   res.seq.data = arena_alloc(a, Complex, input.count);
+  res.N = N;
+
   // only compute the first N/2 values, since the rest are useless for realtime data
   for (isize k = 0; k < N/2 + 1; k++)
   {
@@ -329,6 +333,7 @@ DftResult dft(Arena* a, f64Arr input)
       double angle = 2 * PI * k * n / N;
       real += x_n * cos(angle);
       imag += -x_n * sin(angle);
+      ctx.operations += 1;
     }
 
     // 100 samples per sec / 4096 = 0.0244140625 hz per bucket
@@ -343,7 +348,6 @@ DftResult dft(Arena* a, f64Arr input)
   calc_peaks(a, &res);
   return res;
 }
-
 
 f64Arr dft_inv(Arena* a, Sequence input)
 {
@@ -380,13 +384,17 @@ f64Arr dft_inv(Arena* a, Sequence input)
   return res;
 }
 
-
 DftResult fft(Arena* perm_arena, Arena* tmp_arena, f64Arr input)
 {
+  ctx.operations = 0;
   Sequence tmp_res = fft_c_t(input, tmp_arena, input.count);
 
   DftResult res = { 0 };
+  res.N = (double) input.count;
   res.seq = Sequence_clone(perm_arena, tmp_res);
+
+  // ignore upper half mirrored
+  res.seq.count = res.seq.count / 2;
   calc_peaks(perm_arena, &res);  
 
   return res;
@@ -394,21 +402,22 @@ DftResult fft(Arena* perm_arena, Arena* tmp_arena, f64Arr input)
 
 void calc_peaks(Arena *a, DftResult* res) 
 {
+  
   res->peak_frequencies = PeakFreqArray_empty(a, 5);
-  for (i32 i = 0; i < res->seq.count / 2; i++)
+  for (i32 i = 0; i < res->seq.count; i++)
   {
+    res->seq.data[i] = c_mul(res->seq.data[i], (Complex) { 1.0 / res->N, 0.0 });
 
     Complex next = res->seq.data[i];
     // add peaks to output
     f64 mag = c_mag(next);
-    if ( mag > 1000)
+    if ( mag > 0.3)
     {
       double freq = i * sample_rate / res->seq.capacity;
       PeakFreqArray_add(a, &res->peak_frequencies, (PeakFreq) { i, freq });
     }
   }
 }
-
 
 // see https://github.com/0xb01u/pyFFT/blob/master/Cooley-Tukey.py
 // and https://github.com/bubnicbf/Fast-Fourier-Transform-using-Cooley-Tukey-algorithm/blob/master/FFT.cpp  
@@ -450,12 +459,12 @@ Sequence fft_c_t(f64Arr input, Arena* tmp_arena, isize N)
     w.i = -sin(angle);
     output.data[k] = c_add(even.data[k], c_mul(odd.data[k], w));
     output.data[k + N/2] = c_sub(even.data[k], c_mul(odd.data[k], w));
+    ctx.operations += 1;
   }
   
   return output;
 
 }
-
 
 void remove_freq(DftResult* dft_res, PeakFreq peak_f)
 {
@@ -471,7 +480,7 @@ f64Arr gen_wave_test(Arena* a)
   // sample 3 sec
   // wave is 1 hz
   // Sample 10 sec, with sample rate is number of samles
-  isize samples = (isize)powl(2, 12);
+  isize samples = (isize)powl(2, 14);
   f64Arr res = f64Arr_empty(a, samples);
 
   // each sample is 1/samples of a sec
