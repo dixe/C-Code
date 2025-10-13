@@ -16,12 +16,12 @@ typedef struct {
   i32 y_base;
   i32 h;
   i32 w;
-
 } DrawInfo;
 
 typedef struct
 {
   DrawInfo info;
+  RenderTexture2D target;
 } Plot;
 
 typedef struct
@@ -38,9 +38,9 @@ typedef struct
 /// </summary>
 /// <param name="plot">Pointer to a plot to be updated</param>
 /// <param name="plot_data">Data to be plotted</param>
-void pl_update_plot_info(Plot* plot, PlotData* plot_data);
+void pl_update_plot_info(Arena* frame_arena, Plot* plot, PlotData* plot_data);
 
-void pl_plot(Arena* frame_arena, Plot p, PlotData pd);
+void pl_plot(Plot p);
 
 void pl_draw_dot_fn(int x, int y, DrawInfo info, Color color);
 

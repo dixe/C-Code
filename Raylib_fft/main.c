@@ -45,6 +45,8 @@ f64 c_mag(Complex c);
 
 f64Arr magnitude_arr(Arena* a, Sequence s);
 
+f64Arr real_arr(Arena* a, Sequence s);
+
 void remove_freq(DftResult* dft_res, PeakFreq peak_f);
 
 void initialize_context();
@@ -155,7 +157,7 @@ int main(void)
 
     ClearBackground(RAYWHITE);
 
-    pl_plot(&ctx.frame_arena, ctx.plot, ctx.plot_data);
+    pl_plot(ctx.plot);
 
     if (ctx.dft_res.peak_frequencies.count > 0)
     {
@@ -222,9 +224,9 @@ void initialize_context()
 
   PlotData plot_data = { 0 };
   plot_data.color = RED;
-  set_plot_data(&plot_data, magnitude_arr(&ctx.perm_arena, ctx.test));
+  set_plot_data(&plot_data, real_arr(&ctx.perm_arena, ctx.test));
   plot_data.draw_elm = &pl_draw_dot_fn;
-  pl_update_plot_info(&plot, &plot_data);
+  pl_update_plot_info(&ctx.frame_arena, &plot, &plot_data);
   
   ctx.plot = plot;
   ctx.plot_data = plot_data;
@@ -241,14 +243,27 @@ void update_plot_data()
   }
   else
   {
-    set_plot_data(&ctx.plot_data, magnitude_arr(&ctx.perm_arena, ctx.test));
+    set_plot_data(&ctx.plot_data, real_arr(&ctx.perm_arena, ctx.test));
     ctx.plot_data.draw_elm = &pl_draw_dot_fn;
   }
 
-  pl_update_plot_info(&ctx.plot, &ctx.plot_data);
+  pl_update_plot_info(&ctx.frame_arena, &ctx.plot, &ctx.plot_data);
 }
 
 
+
+f64Arr real_arr(Arena* a, Sequence s)
+{
+  // just get real data 
+  f64Arr res = f64Arr_empty(a, s.count);
+
+  res.count = s.count;
+  for (isize i = 0; i < s.count; i++)
+  {
+    res.data[i] = s.data[i].r;
+  }
+  return res;
+}
 
 f64Arr magnitude_arr(Arena* a, Sequence s)
 {
@@ -476,7 +491,7 @@ Sequence gen_wave_test(Arena* a)
   // sample 3 sec
   // wave is 1 hz
   // Sample 10 sec, with sample rate is number of samles
-  isize samples = (isize)powl(2, 14);
+  isize samples = (isize)powl(2, 16);
   Sequence res = Sequence_empty(a, samples);
 
   // each sample is 1/samples of a sec
