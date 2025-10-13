@@ -20,30 +20,30 @@ typedef struct {
 typedef struct {
   Arena frame_arena;
   Arena perm_arena;
-  f64Arr test;
+  Sequence test;
   DftResult dft_res;
   b32 draw_fft;
   b32 use_dft;
   Plot plot;
   PlotData plot_data;
-  f64Arr dft_plot_data;
+  Sequence dft_plot_data;
   i64 operations;
 } Context;
 
 
-DftResult dft(Arena* a, f64Arr input);
-f64Arr dft_inv(Arena* a, Sequence input);
-DftResult fft(Arena* perm_arena, Arena* tmp_arena, f64Arr input);
-DftResult transform(f64Arr input);
+DftResult dft(Arena* a, Sequence input);
+Sequence dft_inv(Arena* a, Sequence input);
+DftResult fft(Arena* perm_arena, Arena* tmp_arena, Sequence input);
+DftResult transform(Sequence input);
 
 
 void calc_peaks(Arena* a, DftResult* res);
-f64Arr gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
+Sequence gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
 
-f64Arr gen_wave_test(Arena* a);
+Sequence gen_wave_test(Arena* a);
 f64 c_mag(Complex c);
 
-f64Arr dft_to_plot_data(Arena* a, Sequence s);
+f64Arr magnitude_arr(Arena* a, Sequence s);
 
 void remove_freq(DftResult* dft_res, PeakFreq peak_f);
 
@@ -52,14 +52,14 @@ void update_plot_data();
 
 void set_plot_data(PlotData *p, f64Arr data)
 {
-  p->count = data.count;
+  p->count = data.count; 
   p->data = data.data;
 }
 
 f64 sample_rate = 2048;
 f32 wave_freq = 1.0; 
 
-Sequence fft_c_t(f64Arr input, Arena* tmp_arena, isize N);
+Sequence fft_c_t(Sequence input, Arena* tmp_arena, isize N);
 
 Context ctx = { 0 };
 
@@ -222,7 +222,7 @@ void initialize_context()
 
   PlotData plot_data = { 0 };
   plot_data.color = RED;
-  set_plot_data(&plot_data, ctx.test);
+  set_plot_data(&plot_data, magnitude_arr(&ctx.perm_arena, ctx.test));
   plot_data.draw_elm = &pl_draw_dot_fn;
   pl_update_plot_info(&plot, &plot_data);
   
@@ -236,19 +236,21 @@ void update_plot_data()
 
   if (ctx.draw_fft)
   {
-    set_plot_data(&ctx.plot_data, dft_to_plot_data(&ctx.perm_arena, ctx.dft_res.seq));
+    set_plot_data(&ctx.plot_data, magnitude_arr(&ctx.perm_arena, ctx.dft_res.seq));
     ctx.plot_data.draw_elm = &pl_draw_dft_fn;
   }
   else
   {
-    set_plot_data(&ctx.plot_data, ctx.test);
+    set_plot_data(&ctx.plot_data, magnitude_arr(&ctx.perm_arena, ctx.test));
     ctx.plot_data.draw_elm = &pl_draw_dot_fn;
   }
 
   pl_update_plot_info(&ctx.plot, &ctx.plot_data);
 }
 
-f64Arr dft_to_plot_data(Arena* a, Sequence s)
+
+
+f64Arr magnitude_arr(Arena* a, Sequence s)
 {
   // just get real data 
   f64Arr res = f64Arr_empty(a, s.count);
@@ -264,13 +266,13 @@ f64Arr dft_to_plot_data(Arena* a, Sequence s)
 Complex c_mul(Complex c1, Complex c2)
 {
   Complex res = { 0 };
-  double a = c1.r;
-  double b = c1.i;
-  double c = c2.r;
-  double d = c2.i;
+  double r1 = c1.r;
+  double i1 = c1.i;
+  double r2 = c2.r;
+  double i2 = c2.i;
 
-  res.r = a * c - b * d;
-  res.i = a * d + b * c;
+  res.r = r1 * r2 - i1 * i2;
+  res.i = r1 * i2 + i1 * r2;
 
   return res;
 }
@@ -294,7 +296,7 @@ Complex c_sub(Complex a, Complex b)
 
 }
 
-DftResult transform(f64Arr input)
+DftResult transform(Sequence input)
 {
   if (ctx.use_dft)
   {
@@ -307,7 +309,7 @@ DftResult transform(f64Arr input)
 
 // Only comutes the first half, since the rest is not use full when using real values, negative frequemcies
 // for inverse we might need it again
-DftResult dft(Arena* a, f64Arr input)
+DftResult dft(Arena* a, Sequence input)
 {
   DftResult res = { 0 };
   
@@ -327,7 +329,7 @@ DftResult dft(Arena* a, f64Arr input)
     f64 imag = 0.0;
     for (isize i = 0; i < N; i++)
     {
-      f64 x_n = input.data[i];
+      f64 x_n = input.data[i].r;
       double n = (double)i;
 
       double angle = 2 * PI * k * n / N;
@@ -349,19 +351,13 @@ DftResult dft(Arena* a, f64Arr input)
   return res;
 }
 
-f64Arr dft_inv(Arena* a, Sequence input)
+Sequence dft_inv(Arena* a, Sequence input)
 {
-  f64Arr res = { 0 };
-
-  isize N = input.count  * 2;
-
-  res.capacity = input.capacity;
-  res.count = 0;
-  res.data = arena_alloc(a, f64, N);
-   
+  isize N = input.count * 2;
+  Sequence res = Sequence_empty(a, N);
+ 
   for (isize n = 0; n < N; n++)
   {
-
     Complex r = { 0 };
     
     // maybe we need to go to N, but it seems like we can just do the first half
@@ -377,14 +373,14 @@ f64Arr dft_inv(Arena* a, Sequence input)
     }
 
 
-    f64Arr_add(a, &res, r.r * 1.0 / N);
+    Sequence_add(a, &res, c_mul(r, (Complex) { 1.0 / N, 0.0 }));
 
   }
 
   return res;
 }
 
-DftResult fft(Arena* perm_arena, Arena* tmp_arena, f64Arr input)
+DftResult fft(Arena* perm_arena, Arena* tmp_arena, Sequence input)
 {
   ctx.operations = 0;
   Sequence tmp_res = fft_c_t(input, tmp_arena, input.count);
@@ -422,7 +418,7 @@ void calc_peaks(Arena *a, DftResult* res)
 // see https://github.com/0xb01u/pyFFT/blob/master/Cooley-Tukey.py
 // and https://github.com/bubnicbf/Fast-Fourier-Transform-using-Cooley-Tukey-algorithm/blob/master/FFT.cpp  
 //coley turkey fft  
-Sequence fft_c_t(f64Arr input, Arena* tmp_arena, isize N)
+Sequence fft_c_t(Sequence input, Arena* tmp_arena, isize N)
 {
   // TODO MAKE SURE IT IS 0 initialized
   Sequence output = Sequence_empty(tmp_arena, N);
@@ -431,19 +427,19 @@ Sequence fft_c_t(f64Arr input, Arena* tmp_arena, isize N)
   output.count = N;
   if (N == 1)
   {
-    output.data[0] = (Complex) { input.data[0], 0.0 };
+    output.data[0] = input.data[0];
     return output;
   }
 
   // divide and conquer
 
   // assume N is power of 2, and thus equal
-  f64Arr input_even = f64Arr_empty(tmp_arena, N / 2);
-  f64Arr input_odd = f64Arr_empty(tmp_arena, N / 2);
+  Sequence input_even = Sequence_empty(tmp_arena, N / 2);
+  Sequence input_odd = Sequence_empty(tmp_arena, N / 2);
   for (i32 i = 0; i < N / 2; i++)
   {
-    f64Arr_add(tmp_arena, &input_even, input.data[i * 2]);
-    f64Arr_add(tmp_arena, &input_odd, input.data[i * 2 + 1]);
+    Sequence_add(tmp_arena, &input_even, input.data[i * 2]);
+    Sequence_add(tmp_arena, &input_odd, input.data[i * 2 + 1]);
   }
 
   Sequence even = fft_c_t(input_even, tmp_arena, N / 2);
@@ -475,33 +471,33 @@ void remove_freq(DftResult* dft_res, PeakFreq peak_f)
 
 }
 
-f64Arr gen_wave_test(Arena* a)
+Sequence gen_wave_test(Arena* a)
 {
   // sample 3 sec
   // wave is 1 hz
   // Sample 10 sec, with sample rate is number of samles
   isize samples = (isize)powl(2, 14);
-  f64Arr res = f64Arr_empty(a, samples);
+  Sequence res = Sequence_empty(a, samples);
 
   // each sample is 1/samples of a sec
   f64 step = 2.0 * PI / sample_rate;
-  
   for (isize i = 0; i < res.capacity; i++)
   {
-    f64 v = 2.0 * sin(wave_freq * i * step);
+    Complex v = { 0 };
+    v.r = 2.0 * sin(wave_freq * i * step);
 
-    v += sin((wave_freq + 10) * i * step);
+    v.r += sin((wave_freq + 10) * i * step);
     
 
-    f64Arr_add(a, &res, v);
+    Sequence_add(a, &res, v);
   }
 
   return res;
 }
 
-f64Arr gen_wave(Arena* a, double freq, isize sample_freq_khz, isize samples)
+Sequence gen_wave(Arena* a, double freq, isize sample_freq_khz, isize samples)
 {
-  f64Arr res = f64Arr_empty(a, samples);
+  Sequence res = Sequence_empty(a, samples);
 
   
 
