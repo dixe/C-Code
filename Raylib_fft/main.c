@@ -22,6 +22,7 @@ typedef struct {
   f64Arr test;
   DftResult dft_res;
   b32 draw_fft;
+  b32 use_dft;
   Plot plot;
   PlotData plot_data;
   f64Arr dft_plot_data;
@@ -30,7 +31,11 @@ typedef struct {
 
 DftResult dft(Arena* a, f64Arr input);
 f64Arr dft_inv(Arena* a, Sequence input);
+DftResult fft(Arena* perm_arena, Arena* tmp_arena, f64Arr input);
+DftResult transform(f64Arr input);
 
+
+void calc_peaks(Arena* a, DftResult* res);
 f64Arr gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
 
 f64Arr gen_wave_test(Arena* a);
@@ -50,7 +55,9 @@ void set_plot_data(PlotData *p, f64Arr data)
 }
 
 f64 sample_rate = 2000;
-f32 wave_freq = 2.0; 
+f32 wave_freq = 1.0; 
+
+Sequence fft_c_t(f64Arr input, Arena* tmp_arena, isize N);
 
 Context ctx = { 0 };
 
@@ -102,7 +109,7 @@ int main(void)
     {
       arena_reset(&ctx.perm_arena);
       ctx.test = gen_wave_test(&ctx.perm_arena);
-      ctx.dft_res = dft(&ctx.perm_arena, ctx.test);
+      ctx.dft_res = transform(ctx.test);      
       ctx.dft_plot_data.count = 0;
       ctx.dft_plot_data.capacity = 0;
     }
@@ -116,14 +123,31 @@ int main(void)
 
     next_button_y += button_y_inc;
 
-    if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Swith"))
+    if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Swith View"))
     {
       ctx.draw_fft = !ctx.draw_fft;
       update_plot_data();
     }
+
+
+    next_button_y += button_y_inc;
+
+    if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Switch algo"))
+    {
+      ctx.use_dft = !ctx.use_dft;
+    }
+
     next_button_y += button_y_inc;
 
    
+    if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Run dft"))
+    {
+      ctx.dft_res = transform(ctx.test);
+      ctx.dft_plot_data.count = 0;
+      ctx.dft_plot_data.capacity = 0;
+    }
+
+    next_button_y += button_y_inc;
 
     BeginDrawing();
 
@@ -183,7 +207,7 @@ void initialize_context()
   ctx.perm_arena = arena_create(512);
 
   ctx.test = gen_wave_test(&ctx.perm_arena);
-  ctx.dft_res = dft(&ctx.perm_arena, ctx.test);
+  ctx.dft_res = transform(ctx.test);
   ctx.draw_fft = false;
 
 
@@ -262,6 +286,23 @@ Complex c_add(Complex a, Complex b)
      
 }
 
+Complex c_sub(Complex a, Complex b)
+{
+  Complex c = { a.r - b.r, a.i - b.i };
+  return c;
+
+}
+DftResult transform(f64Arr input)
+{
+  if (ctx.use_dft)
+  {
+    return dft(&ctx.perm_arena, input);
+  }
+
+  return fft(&ctx.perm_arena, &ctx.frame_arena, input);
+
+}
+
 // Only comutes the first half, since the rest is not use full when using real values, negative frequemcies
 // for inverse we might need it again
 DftResult dft(Arena* a, f64Arr input)
@@ -274,7 +315,6 @@ DftResult dft(Arena* a, f64Arr input)
   res.seq.capacity = input.capacity;
   res.seq.count = 0;
   res.seq.data = arena_alloc(a, Complex, input.count);
-  res.peak_frequencies = PeakFreqArray_empty(a, 5);
   // only compute the first N/2 values, since the rest are useless for realtime data
   for (isize k = 0; k < N/2 + 1; k++)
   {
@@ -291,19 +331,16 @@ DftResult dft(Arena* a, f64Arr input)
       imag += -x_n * sin(angle);
     }
 
+    // 100 samples per sec / 4096 = 0.0244140625 hz per bucket
+    // 2000 / 6000 =  0.3 hz per sample 
     Complex next = { 0 };
     next.r = real;
     next.i = imag;
     Sequence_add(a, &res.seq, next);
-
-    // add peaks to output
-    if (c_mag(next) > 1.0)
-    {
-      double freq = k * sample_rate / N;
-      PeakFreqArray_add(a, &res.peak_frequencies, (PeakFreq) { k, freq });
-    }
+    
   }  
 
+  calc_peaks(a, &res);
   return res;
 }
 
@@ -344,11 +381,88 @@ f64Arr dft_inv(Arena* a, Sequence input)
 }
 
 
+DftResult fft(Arena* perm_arena, Arena* tmp_arena, f64Arr input)
+{
+  Sequence tmp_res = fft_c_t(input, tmp_arena, input.count);
+
+  DftResult res = { 0 };
+  res.seq = Sequence_clone(perm_arena, tmp_res);
+  calc_peaks(perm_arena, &res);  
+
+  return res;
+}
+
+void calc_peaks(Arena *a, DftResult* res) 
+{
+  res->peak_frequencies = PeakFreqArray_empty(a, 5);
+  for (i32 i = 0; i < res->seq.count / 2; i++)
+  {
+
+    Complex next = res->seq.data[i];
+    // add peaks to output
+    f64 mag = c_mag(next);
+    if ( mag > 1000)
+    {
+      double freq = i * sample_rate / res->seq.capacity;
+      PeakFreqArray_add(a, &res->peak_frequencies, (PeakFreq) { i, freq });
+    }
+  }
+}
+
+
+// see https://github.com/0xb01u/pyFFT/blob/master/Cooley-Tukey.py
+// and https://github.com/bubnicbf/Fast-Fourier-Transform-using-Cooley-Tukey-algorithm/blob/master/FFT.cpp  
+//coley turkey fft  
+Sequence fft_c_t(f64Arr input, Arena* tmp_arena, isize N)
+{
+  // TODO MAKE SURE IT IS 0 initialized
+  Sequence output = Sequence_empty(tmp_arena, N);
+
+  memset(output.data, 0, output.capacity * sizeof(Complex));
+  output.count = N;
+  if (N == 1)
+  {
+    output.data[0] = (Complex) { input.data[0], 0.0 };
+    return output;
+  }
+
+  // divide and conquer
+
+  // assume N is power of 2, and thus equal
+  f64Arr input_even = f64Arr_empty(tmp_arena, N / 2);
+  f64Arr input_odd = f64Arr_empty(tmp_arena, N / 2);
+  for (i32 i = 0; i < N / 2; i++)
+  {
+    f64Arr_add(tmp_arena, &input_even, input.data[i * 2]);
+    f64Arr_add(tmp_arena, &input_odd, input.data[i * 2 + 1]);
+  }
+
+  Sequence even = fft_c_t(input_even, tmp_arena, N / 2);
+  Sequence odd = fft_c_t(input_odd, tmp_arena, N / 2);
+
+  
+  // combine
+  for (isize k = 0; k < N / 2; k++)
+  {
+    Complex w = { 0 };
+    double angle = 2 * PI * k / N;
+    w.r = cos(angle);
+    w.i = -sin(angle);
+    output.data[k] = c_add(even.data[k], c_mul(odd.data[k], w));
+    output.data[k + N/2] = c_sub(even.data[k], c_mul(odd.data[k], w));
+  }
+  
+  return output;
+
+}
+
+
 void remove_freq(DftResult* dft_res, PeakFreq peak_f)
 {
   dft_res->seq.data[peak_f.index] = (Complex){ 0.0, 0.0 };
 
-  update_plot_data();
+  update_plot_data();  
+  calc_peaks(&ctx.perm_arena, &ctx.dft_res);
 
 }
 
@@ -357,7 +471,7 @@ f64Arr gen_wave_test(Arena* a)
   // sample 3 sec
   // wave is 1 hz
   // Sample 10 sec, with sample rate is number of samles
-  isize samples = 3 * (isize)sample_rate;
+  isize samples = (isize)powl(2, 12);
   f64Arr res = f64Arr_empty(a, samples);
 
   // each sample is 1/samples of a sec
@@ -365,10 +479,10 @@ f64Arr gen_wave_test(Arena* a)
   
   for (isize i = 0; i < res.capacity; i++)
   {
-    f64 v = sin(wave_freq * i * step);
+    f64 v = 2.0 * sin(wave_freq * i * step);
 
-    v += sin((wave_freq + 1) * i * step);
-    v += sin((wave_freq + 100) * i * step + 30*step) * 0.5;
+    v += sin((wave_freq + 10) * i * step);
+    
 
     f64Arr_add(a, &res, v);
   }

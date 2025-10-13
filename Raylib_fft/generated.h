@@ -13,7 +13,10 @@ typedef struct {
 
 Sequence Sequence_empty(Arena* arena, isize capacity);
 
-void Sequence_add(Arena* arena, Sequence* s, Complex c);;
+void Sequence_add(Arena* arena, Sequence* s, Complex c);
+
+
+Sequence Sequence_clone(Arena* arena, Sequence s);;
 
 
 typedef struct {
@@ -25,7 +28,10 @@ typedef struct {
 
 f64Arr f64Arr_empty(Arena* arena, isize capacity);
 
-void f64Arr_add(Arena* arena, f64Arr* s, f64 c);;
+void f64Arr_add(Arena* arena, f64Arr* s, f64 c);
+
+
+f64Arr f64Arr_clone(Arena* arena, f64Arr s);;
 
 
 typedef struct {
@@ -37,5 +43,8 @@ typedef struct {
 
 PeakFreqArray PeakFreqArray_empty(Arena* arena, isize capacity);
 
-void PeakFreqArray_add(Arena* arena, PeakFreqArray* s, PeakFreq c);;
+void PeakFreqArray_add(Arena* arena, PeakFreqArray* s, PeakFreq c);
+
+
+PeakFreqArray PeakFreqArray_clone(Arena* arena, PeakFreqArray s);;
 

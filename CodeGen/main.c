@@ -196,6 +196,7 @@ int main(int argc, char* argv[]) {
   s8 code_output = s8_from_literal("/// Generated file do not modify, can and will change on build\n");
   s8_append(&data_arena, &code_output, s8_from_literal("#include \"generated.h\"\n"));
   s8_append(&data_arena, &code_output, s8_from_literal("#include \"dyn_array.h\"\n\n"));
+  s8_append(&data_arena, &code_output, s8_from_literal("#include <string.h>\n\n"));
 
   s8Slice next_line = s8_next_line_slice(gen_content, 0);
 
