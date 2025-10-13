@@ -56,7 +56,7 @@ void set_plot_data(PlotData *p, f64Arr data)
   p->data = data.data;
 }
 
-f64 sample_rate = 2000;
+f64 sample_rate = 2048;
 f32 wave_freq = 1.0; 
 
 Sequence fft_c_t(f64Arr input, Arena* tmp_arena, isize N);
