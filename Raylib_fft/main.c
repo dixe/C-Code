@@ -10,6 +10,8 @@
 #include "types.h"
 #include "generated.h"
 #include "plot.h"
+#include "fft.h"
+
 
 typedef struct {
   Sequence seq;
@@ -31,16 +33,12 @@ typedef struct {
 } Context;
 
 
-DftResult dft(Arena* a, Sequence input);
-Sequence dft_inv(Arena* a, Sequence input);
-DftResult fft(Arena* perm_arena, Arena* tmp_arena, Sequence input);
-DftResult transform(Sequence input);
-
-
-void calc_peaks(Arena* a, DftResult* res);
 Sequence gen_wave(Arena* a, f64 freq, isize sample_freq_khz, isize samples);
-
 Sequence gen_wave_test(Arena* a);
+
+DftResult transform(Sequence input);
+void calc_peaks(Arena* a, DftResult* res);
+
 f64 c_mag(Complex c);
 
 f64Arr magnitude_arr(Arena* a, Sequence s);
@@ -61,7 +59,6 @@ void set_plot_data(PlotData *p, f64Arr data)
 f64 sample_rate = 2048;
 f32 wave_freq = 1.0; 
 
-Sequence fft_c_t(Sequence input, Arena* tmp_arena, isize N);
 
 Context ctx = { 0 };
 
@@ -121,7 +118,10 @@ int main(void)
 
     if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Inverse_dft"))
     {     
-      ctx.test = dft_inv(&ctx.perm_arena, ctx.dft_res.seq);
+      // to do inverse switch algo
+
+      //ctx.test = dft_inv(&ctx.perm_arena, ctx.dft_res.seq);
+      ctx.test = fft_ifft(&ctx.perm_arena, &ctx.frame_arena, ctx.dft_res.seq);
       update_plot_data();
     }
 
@@ -232,7 +232,6 @@ void initialize_context()
   ctx.plot_data = plot_data;
 }
 
-
 void update_plot_data()
 {
 
@@ -249,8 +248,6 @@ void update_plot_data()
 
   pl_update_plot_info(&ctx.frame_arena, &ctx.plot, &ctx.plot_data);
 }
-
-
 
 f64Arr real_arr(Arena* a, Sequence s)
 {
@@ -278,135 +275,21 @@ f64Arr magnitude_arr(Arena* a, Sequence s)
   return res;
 }
 
-Complex c_mul(Complex c1, Complex c2)
-{
-  Complex res = { 0 };
-  double r1 = c1.r;
-  double i1 = c1.i;
-  double r2 = c2.r;
-  double i2 = c2.i;
-
-  res.r = r1 * r2 - i1 * i2;
-  res.i = r1 * i2 + i1 * r2;
-
-  return res;
-}
-
-double c_mag(Complex c)
-{
-  return sqrt(c.r * c.r + c.i * c.i);
-}
-
-Complex c_add(Complex a, Complex b)
-{
-  Complex c = { a.r + b.r, a.i + b.i };
-  return c;
-     
-}
-
-Complex c_sub(Complex a, Complex b)
-{
-  Complex c = { a.r - b.r, a.i - b.i };
-  return c;
-
-}
-
 DftResult transform(Sequence input)
 {
+  DftResult res = { 0 };
   if (ctx.use_dft)
   {
-    return dft(&ctx.perm_arena, input);
+    res.seq = fft_dft(&ctx.perm_arena, input);
+  }
+  else {
+    res.seq = fft_fft(&ctx.perm_arena, &ctx.frame_arena, input);
+    res.seq.count = res.seq.count / 2;
   }
 
-  return fft(&ctx.perm_arena, &ctx.frame_arena, input);
-
-}
-
-// Only comutes the first half, since the rest is not use full when using real values, negative frequemcies
-// for inverse we might need it again
-DftResult dft(Arena* a, Sequence input)
-{
-  DftResult res = { 0 };
   
-  ctx.operations = 0;
-  double N = (double)input.count;
-
-  res.seq.capacity = input.capacity;
-  res.seq.count = 0;
-  res.seq.data = arena_alloc(a, Complex, input.count);
-  res.N = N;
-
-  // only compute the first N/2 values, since the rest are useless for realtime data
-  for (isize k = 0; k < N/2 + 1; k++)
-  {
-    
-    f64 real = 0.0;
-    f64 imag = 0.0;
-    for (isize i = 0; i < N; i++)
-    {
-      f64 x_n = input.data[i].r;
-      double n = (double)i;
-
-      double angle = 2 * PI * k * n / N;
-      real += x_n * cos(angle);
-      imag += -x_n * sin(angle);
-      ctx.operations += 1;
-    }
-
-    // 100 samples per sec / 4096 = 0.0244140625 hz per bucket
-    // 2000 / 6000 =  0.3 hz per sample 
-    Complex next = { 0 };
-    next.r = real;
-    next.i = imag;
-    Sequence_add(a, &res.seq, next);
-    
-  }  
-
-  calc_peaks(a, &res);
-  return res;
-}
-
-Sequence dft_inv(Arena* a, Sequence input)
-{
-  isize N = input.count * 2;
-  Sequence res = Sequence_empty(a, N);
- 
-  for (isize n = 0; n < N; n++)
-  {
-    Complex r = { 0 };
-    
-    // maybe we need to go to N, but it seems like we can just do the first half
-    for (isize k = 0; k < N/2; k++)
-    {
-      Complex x_k = input.data[k];
-      double angle = 2.0 * PI * k * n / N;
-      Complex c = { 0 };
-      c.r = cos(angle);
-      c.i= sin(angle);
-      Complex tmp = c_mul(x_k, c);
-      r = c_add(tmp, r);
-    }
-
-
-    Sequence_add(a, &res, c_mul(r, (Complex) { 1.0 / N, 0.0 }));
-
-  }
-
-  return res;
-}
-
-DftResult fft(Arena* perm_arena, Arena* tmp_arena, Sequence input)
-{
-  ctx.operations = 0;
-  Sequence tmp_res = fft_c_t(input, tmp_arena, input.count);
-
-  DftResult res = { 0 };
-  res.N = (double) input.count;
-  res.seq = Sequence_clone(perm_arena, tmp_res);
-
-  // ignore upper half mirrored
-  res.seq.count = res.seq.count / 2;
-  calc_peaks(perm_arena, &res);  
+  res.N = (f64)input.count;
+  calc_peaks(&ctx.perm_arena, &res);
 
   return res;
 }
@@ -428,53 +311,6 @@ void calc_peaks(Arena *a, DftResult* res)
       PeakFreqArray_add(a, &res->peak_frequencies, (PeakFreq) { i, freq });
     }
   }
-}
-
-// see https://github.com/0xb01u/pyFFT/blob/master/Cooley-Tukey.py
-// and https://github.com/bubnicbf/Fast-Fourier-Transform-using-Cooley-Tukey-algorithm/blob/master/FFT.cpp  
-//coley turkey fft  
-Sequence fft_c_t(Sequence input, Arena* tmp_arena, isize N)
-{
-  // TODO MAKE SURE IT IS 0 initialized
-  Sequence output = Sequence_empty(tmp_arena, N);
-
-  memset(output.data, 0, output.capacity * sizeof(Complex));
-  output.count = N;
-  if (N == 1)
-  {
-    output.data[0] = input.data[0];
-    return output;
-  }
-
-  // divide and conquer
-
-  // assume N is power of 2, and thus equal
-  Sequence input_even = Sequence_empty(tmp_arena, N / 2);
-  Sequence input_odd = Sequence_empty(tmp_arena, N / 2);
-  for (i32 i = 0; i < N / 2; i++)
-  {
-    Sequence_add(tmp_arena, &input_even, input.data[i * 2]);
-    Sequence_add(tmp_arena, &input_odd, input.data[i * 2 + 1]);
-  }
-
-  Sequence even = fft_c_t(input_even, tmp_arena, N / 2);
-  Sequence odd = fft_c_t(input_odd, tmp_arena, N / 2);
-
-  
-  // combine
-  for (isize k = 0; k < N / 2; k++)
-  {
-    Complex w = { 0 };
-    double angle = 2 * PI * k / N;
-    w.r = cos(angle);
-    w.i = -sin(angle);
-    output.data[k] = c_add(even.data[k], c_mul(odd.data[k], w));
-    output.data[k + N/2] = c_sub(even.data[k], c_mul(odd.data[k], w));
-    ctx.operations += 1;
-  }
-  
-  return output;
-
 }
 
 void remove_freq(DftResult* dft_res, PeakFreq peak_f)
@@ -513,8 +349,6 @@ Sequence gen_wave_test(Arena* a)
 Sequence gen_wave(Arena* a, double freq, isize sample_freq_khz, isize samples)
 {
   Sequence res = Sequence_empty(a, samples);
-
-  
 
   return res;
 }

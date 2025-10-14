@@ -152,6 +152,7 @@
     <ClCompile Include="..\Lib\hashmap.c" />
     <ClCompile Include="..\Lib\plot.c" />
     <ClCompile Include="..\Lib\s_string.c" />
+    <ClCompile Include="fft.c" />
     <ClCompile Include="generated.c" />
     <ClCompile Include="main.c" />
   </ItemGroup>
@@ -166,6 +167,7 @@
     <ClInclude Include="..\Lib\hashmap.h" />
     <ClInclude Include="..\Lib\plot.h" />
     <ClInclude Include="..\Lib\s_string.h" />
+    <ClInclude Include="fft.h" />
     <ClInclude Include="generated.h" />
     <ClInclude Include="raygui.h" />
     <ClInclude Include="types.h" />
