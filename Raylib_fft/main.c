@@ -116,6 +116,12 @@ int main(void)
     }
     next_button_y += button_y_inc;
 
+    if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Calc peaks"))
+    {
+      calc_peaks(&ctx.perm_arena, &ctx.dft_res);
+    }
+    next_button_y += button_y_inc;
+
     if (GuiButton((Rectangle) { 10, next_button_y, 80, 40 }, "Inverse_dft"))
     {     
       // to do inverse switch algo
@@ -299,9 +305,7 @@ void calc_peaks(Arena *a, DftResult* res)
   
   res->peak_frequencies = PeakFreqArray_empty(a, 5);
   for (i32 i = 0; i < res->seq.count; i++)
-  {
-    res->seq.data[i] = c_mul(res->seq.data[i], (Complex) { 1.0 / res->N, 0.0 });
-
+  {    
     Complex next = res->seq.data[i];
     // add peaks to output
     f64 mag = c_mag(next);
@@ -335,11 +339,10 @@ Sequence gen_wave_test(Arena* a)
   for (isize i = 0; i < res.capacity; i++)
   {
     Complex v = { 0 };
-    v.r = 2.0 * sin(wave_freq * i * step);
-
-    v.r += sin((wave_freq + 10) * i * step);
-    
-
+    for (isize j = 0; j < 20; j++)
+    {
+      v.r += 2.0 * sin((wave_freq + j ) * i * step);      
+    }
     Sequence_add(a, &res, v);
   }
 

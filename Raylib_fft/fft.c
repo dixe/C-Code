@@ -126,7 +126,12 @@ Sequence fft_fft(Arena* perm_arena, Arena* tmp_arena, Sequence input)
 {
   Sequence tmp_res = coley_turkey(input, tmp_arena, input.count, -1.0);
 
-  return Sequence_clone(perm_arena, tmp_res);
+  Sequence res = Sequence_clone(perm_arena, tmp_res);
+  for (i32 i = 0; i < res.count; i++)
+  {
+    res.data[i] = c_mul(res.data[i], (Complex) { 1.0 / input.count, 0.0 });
+  }
+  return res;
 }
 
 
