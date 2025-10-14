@@ -50,6 +50,7 @@ void remove_freq(DftResult* dft_res, PeakFreq peak_f);
 void initialize_context();
 void update_plot_data();
 
+void draw_frequencies(f32 next_y);
 void set_plot_data(PlotData *p, f64Arr data)
 {
   p->count = data.count; 
@@ -62,6 +63,13 @@ f32 wave_freq = 1.0;
 
 Context ctx = { 0 };
 
+Rectangle panelRec = { 20, 40, 200, 150 };
+Rectangle panelContentRec = { 0, 0, 80, 100 };
+Rectangle panelView = { 0 };
+Vector2 panelScroll = { 99, -20 };
+
+const i32 screenWidth = 1200;
+const i32 screenHeight = 800;
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
@@ -70,8 +78,6 @@ int main(void)
   // Initialization
   //--------------------------------------------------------------------------------------
 
-  const i32 screenWidth = 1200;
-  const i32 screenHeight = 800;
 
   InitWindow(screenWidth, screenHeight, "Fourier");
   //--------------------------------------------------------------------------------------
@@ -167,31 +173,8 @@ int main(void)
 
     if (ctx.dft_res.peak_frequencies.count > 0)
     {
-      number_s = s8_isize_to_s8(&ctx.frame_arena, ctx.dft_res.peak_frequencies.count);
-      s8 freq_s = s8_concat(&ctx.frame_arena, s8_from_literal("Peak frequencies ("), number_s);
-      s8_append_c_str(&ctx.frame_arena, &freq_s, ") ");
-
-      for (isize i = 0; i < ctx.dft_res.peak_frequencies.count; i++)
-      {
-        number_s = s8_f64_to_s8(&ctx.frame_arena, ctx.dft_res.peak_frequencies.data[i].freq, 1);
-        s8_append(&ctx.frame_arena, &freq_s, number_s);
-        if (i < ctx.dft_res.peak_frequencies.count - 1)
-        {
-          s8_append_c_str(&ctx.frame_arena, &freq_s, " ,");
-        }
-
-        s8 button_text = s8_concat(&ctx.frame_arena, s8_from_literal("Remove F: "), number_s);
-        s8_append_zero(&ctx.frame_arena, &button_text);
-
-        if (GuiButton((Rectangle) { (f32)10, next_button_y, (f32)80, (f32)40 }, button_text.data))
-        {
-          remove_freq(&ctx.dft_res, ctx.dft_res.peak_frequencies.data[i]);
-        }
-        next_button_y += button_y_inc;
-      }
-
-      s8_append_zero(&ctx.frame_arena, &freq_s);
-      DrawText(freq_s.data, 300, 20, 20, BLACK);
+      draw_frequencies(next_button_y);
+     
     }
 
 
@@ -208,6 +191,59 @@ int main(void)
   //--------------------------------------------------------------------------------------
 
   return 0;
+}
+
+void draw_frequencies(f32 next_button_y)
+{
+  s8 number_s = s8_isize_to_s8(&ctx.frame_arena, ctx.dft_res.peak_frequencies.count);
+  s8 freq_s = s8_concat(&ctx.frame_arena, s8_from_literal("Peak frequencies ("), number_s);
+  s8_append_c_str(&ctx.frame_arena, &freq_s, ") ");
+  
+
+  f32 button_y_inc = 50;
+
+  panelContentRec.height = ctx.dft_res.peak_frequencies.count * button_y_inc ;
+
+  panelView.x = 10;
+  panelView.y = next_button_y;
+  panelView.height = min(screenHeight - 10 - panelView.y, panelContentRec.height + 15);
+  panelView.width = 100;
+
+  panelRec.x = 10;
+  panelRec.y = next_button_y ;
+  panelRec.height = panelView.height;
+  panelRec.width = 100;
+
+
+
+  // the rect that is visible in on screen
+  GuiScrollPanel(panelRec, NULL, panelContentRec, &panelScroll, &panelView);
+
+  BeginScissorMode(panelView.x, panelView.y, panelView.width, panelView.height);
+    
+  for (isize i = 0; i < ctx.dft_res.peak_frequencies.count; i++)
+  {
+    number_s = s8_f64_to_s8(&ctx.frame_arena, ctx.dft_res.peak_frequencies.data[i].freq, 1);
+    s8_append(&ctx.frame_arena, &freq_s, number_s);
+    if (i < ctx.dft_res.peak_frequencies.count - 1)
+    {
+      s8_append_c_str(&ctx.frame_arena, &freq_s, " ,");
+    }
+
+    s8 button_text = s8_concat(&ctx.frame_arena, s8_from_literal("Remove F: "), number_s);
+    s8_append_zero(&ctx.frame_arena, &button_text);
+
+    if (GuiButton((Rectangle) { (f32)10, next_button_y + panelScroll.y, (f32)80, (f32)40 }, button_text.data))
+    {
+      remove_freq(&ctx.dft_res, ctx.dft_res.peak_frequencies.data[i]);
+    }
+    next_button_y += button_y_inc;
+  }
+
+  EndScissorMode();
+
+  s8_append_zero(&ctx.frame_arena, &freq_s);
+  DrawText(freq_s.data, 300, 20, 20, BLACK);
 }
 
 void initialize_context()
