@@ -179,7 +179,6 @@ int main(void)
 
 
 
-
     EndDrawing();
     arena_reset(&ctx.frame_arena);
     //----------------------------------------------------------------------------------
@@ -214,10 +213,8 @@ void draw_frequencies(f32 next_button_y)
   panelRec.height = panelView.height;
   panelRec.width = 100;
 
-
-
   // the rect that is visible in on screen
-  GuiScrollPanel(panelRec, NULL, panelContentRec, &panelScroll, &panelView);
+  GuiScrollPanel(panelView, NULL, panelContentRec, &panelScroll, &panelView);
 
   BeginScissorMode(panelView.x, panelView.y, panelView.width, panelView.height);
     

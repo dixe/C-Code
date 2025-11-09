@@ -10,5 +10,4 @@ STRUCTNAME STRUCTNAME_empty(Arena* arena, isize capacity);
 
 void STRUCTNAME_add(Arena* arena, STRUCTNAME* s, TYPENAME c);
 
-
 STRUCTNAME STRUCTNAME_clone(Arena* arena, STRUCTNAME s);

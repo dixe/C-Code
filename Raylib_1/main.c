@@ -1,132 +1,40 @@
-﻿/*******************************************************************************************
-*
-*   raylib [text] example - rectangle bounds
-*
-*   Example complexity rating: [★★★★] 4/4
-*
-*   Example originally created with raylib 2.5, last time updated with raylib 4.0
-*
-*   Example contributed by Vlad Adrian (@demizdor) and reviewed by Ramon Santamaria (@raysan5)
-*
-*   Example licensed under an unmodified zlib/libpng license, which is an OSI-certified,
-*   BSD-like license that allows static linking with closed source software
-*
-*   Copyright (c) 2018-2025 Vlad Adrian (@demizdor) and Ramon Santamaria (@raysan5)
-*
-********************************************************************************************/
-
+﻿#pragma warning (disable : 4996 6031 6387 6029 26451) // ignore fopen insecure in raylib
 #include "raylib.h"
-#include "arena.h"
-#include "hashmap.h"
 
-typedef struct {
-  u32* data;
-  isize count;
-} CodePoints;
+#define RAYGUI_IMPLEMENTATION
+#include "raygui.h"
 
 
-CodePoints remove_duplicate_codepoints(int* codepoints, int count, Arena* a);
-
-static void DrawTextBoxed(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint);   // Draw text using font inside rectangle limits
-static void DrawTextBoxedSelectable(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint);    // Draw text using font inside rectangle limits with support for text selection
-
-
+static void DrawStyleEditControls(void);  // Draw and process scroll bar style edition controls
 
 //------------------------------------------------------------------------------------
 // Program main entry point
 //------------------------------------------------------------------------------------
-int main(void)
+int main()
 {
   // Initialization
-  //--------------------------------------------------------------------------------------
+  //---------------------------------------------------------------------------------------
   const int screenWidth = 800;
   const int screenHeight = 450;
 
-  InitWindow(screenWidth, screenHeight, "raylib [text] example - draw text inside a rectangle");
+  InitWindow(screenWidth, screenHeight, "raygui - GuiScrollPanel()");
 
-  const char text[] = u8"Text cannot escape\tthis ægos! åge bøg  container\t...word wrap also works when active so here's \
-a long text for testing.\n\nLorem ipsum dolor sit amet, ædaw consectetur adipiscing elit, sed do eiusmod \
-tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet risus nullam eget felis eget.";
+  Rectangle panelRec = { 20, 400, 200, 150 };
+  Rectangle panelContentRec = { 0, 0, 340, 340 };
+  Rectangle panelView = { 0 };
+  Vector2 panelScroll = { 99, -20 };
 
-  bool resizing = false;
-  bool wordWrap = true;
+  bool showContentArea = true;
 
-  Rectangle container = { 25.0f, 25.0f, screenWidth - 50.0f, screenHeight - 250.0f };
-  Rectangle resizer = { container.x + container.width - 17, container.y + container.height - 17, 14, 14 };
-
-  // Minimum width and heigh for the container rectangle
-  const float minWidth = 60;
-  const float minHeight = 60;
-  const float maxWidth = screenWidth - 50.0f;
-  const float maxHeight = screenHeight - 160.0f;
-
-  Vector2 lastMouse = { 0.0f, 0.0f }; // Stores last mouse coordinates
-  Color borderColor = MAROON;         // Container border color
-
-  char text1[] = { 0xC3, 0xA6 };
-
-  // Convert each utf-8 character into its
-  // corresponding codepoint in the font file
-  int codepointCount = 0;
-  int* codepoints = LoadCodepoints(text, &codepointCount);
-
-  Arena arena = arena_create(1<<10);
-
-  CodePoints code_points = remove_duplicate_codepoints(codepoints, codepointCount, &arena);
-
-  for(i32 i = 0; i <code_points.count; i++)
-  {
-    u32 cp = code_points.data[i];
-  }
-
-  // Load font containing all the provided codepoint glyphs
-  // A texture font atlas is automatically generated
-  // only load the actual code points in the text, and only d
-  Font font = LoadFontEx("E:/repos/rust-gl-lib/assets/fonts/calibri.ttf", 36, code_points.data, code_points.count);
-
-  // Set bilinear scale filter for better font scaling
-  SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
-
-  UnloadCodepoints(codepoints);
-
-  SetTargetFPS(60);                   // Set our game to run at 60 frames-per-second
-  //--------------------------------------------------------------------------------------
+  SetTargetFPS(60);
+  //---------------------------------------------------------------------------------------
 
   // Main game loop
-  while (!WindowShouldClose())        // Detect window close button or ESC key
+  while (!WindowShouldClose())    // Detect window close button or ESC key
   {
     // Update
     //----------------------------------------------------------------------------------
-    if (IsKeyPressed(KEY_SPACE)) wordWrap = !wordWrap;
-
-    Vector2 mouse = GetMousePosition();
-
-    // Check if the mouse is inside the container and toggle border color
-    if (CheckCollisionPointRec(mouse, container)) borderColor = Fade(MAROON, 0.4f);
-    else if (!resizing) borderColor = MAROON;
-
-    // Container resizing logic
-    if (resizing)
-    {
-      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) resizing = false;
-
-      float width = container.width + (mouse.x - lastMouse.x);
-      container.width = (width > minWidth) ? ((width < maxWidth) ? width : maxWidth) : minWidth;
-
-      float height = container.height + (mouse.y - lastMouse.y);
-      container.height = (height > minHeight) ? ((height < maxHeight) ? height : maxHeight) : minHeight;
-    }
-    else
-    {
-      // Check if we're resizing
-      if (IsMouseButtonDown(MOUSE_BUTTON_LEFT) && CheckCollisionPointRec(mouse, resizer)) resizing = true;
-    }
-
-    // Move resizer rectangle properly
-    resizer.x = container.x + container.width - 17;
-    resizer.y = container.y + container.height - 17;
-
-    lastMouse = mouse; // Update mouse
+    // TODO: Implement required update logic
     //----------------------------------------------------------------------------------
 
     // Draw
@@ -135,28 +43,22 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
 
     ClearBackground(RAYWHITE);
 
+    DrawText(TextFormat("[%f, %f]", panelScroll.x, panelScroll.y), 4, 4, 20, RED);
 
+    GuiScrollPanel(panelRec, NULL, panelContentRec, &panelScroll, &panelView);
 
-    DrawTexture(font.texture, 0, 0, BLACK);
+    BeginScissorMode(panelView.x, panelView.y, panelView.width, panelView.height);
+    GuiGrid((Rectangle) { panelRec.x + panelScroll.x, panelRec.y + panelScroll.y, panelContentRec.width, panelContentRec.height }, NULL, 16, 3, NULL);
+    EndScissorMode();
 
-    DrawRectangleLinesEx(container, 3, borderColor);    // Draw container border
+    if (showContentArea) DrawRectangle(panelRec.x + panelScroll.x, panelRec.y + panelScroll.y, panelContentRec.width, panelContentRec.height, Fade(RED, 0.1));
 
-    // Draw text in container (add some padding)
-    DrawTextBoxed(font, text, (Rectangle) { container.x + 4, container.y + 4, container.width - 4, container.height - 4 }, 20.0f, 2.0f, wordWrap, BLACK);
+    DrawStyleEditControls();
 
-    DrawRectangleRec(resizer, borderColor);             // Draw the resize box
+    GuiCheckBox((Rectangle) { 565, 80, 20, 20 }, "SHOW CONTENT AREA", & showContentArea);
 
-    // Draw bottom info
-    DrawRectangle(0, screenHeight - 54, screenWidth, 54, GRAY);
-    DrawRectangleRec((Rectangle) { 382.0f, screenHeight - 34.0f, 12.0f, 12.0f }, MAROON);
-
-    DrawText("Word Wrap: ", 313, screenHeight - 115, 20, BLACK);
-    if (wordWrap) DrawText("ON", 447, screenHeight - 115, 20, RED);
-    else DrawText("OFF", 447, screenHeight - 115, 20, BLACK);
-
-    DrawText("Press [SPACE] to toggle word wrap", 218, screenHeight - 86, 20, GRAY);
-
-    DrawText("Click hold & drag the    to resize the container", 155, screenHeight - 38, 20, RAYWHITE);
+    GuiSliderBar((Rectangle) { 590, 385, 145, 15 }, "WIDTH", TextFormat("%i", (int)panelContentRec.width), & panelContentRec.width, 1, 600);
+    GuiSliderBar((Rectangle) { 590, 410, 145, 15 }, "HEIGHT", TextFormat("%i", (int)panelContentRec.height), & panelContentRec.height, 1, 400);
 
     EndDrawing();
     //----------------------------------------------------------------------------------
@@ -170,170 +72,60 @@ tempor incididunt ut labore et dolore magna aliqua. Nec ullamcorper sit amet ris
   return 0;
 }
 
-//--------------------------------------------------------------------------------------
-// Module functions definition
-//--------------------------------------------------------------------------------------
-
-
-CodePoints remove_duplicate_codepoints(int* codepoints, int count, Arena* a) {
-
-  HashMapTrie* map = { 0 };
-  CodePoints ret = { 0 };
-
-  // allocate room for all codepoints
-  ret.data = arena_alloc(a, int, count);
-  for (int i = 0; i < count; i++)
-  {
-    // fake string 
-    s8 key = { .byte_len = 4, .capacity = 4, .data = &codepoints[i] };
-
-    b32 contains = hmt_contains(&map, key);
-
-    // we just need a hashset, so ignore the return val
-    if (!contains)
-    {
-      // we just need a hashset, so ignore the return val
-      hmt_insert_get(&map, key, int, a);
-      ret.data[ret.count] = codepoints[i];
-      ret.count += 1;
-    }
-  }
-
-  return ret;
-}
-
-// Draw text using font inside rectangle limits
-static void DrawTextBoxed(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint)
+// Draw and process scroll bar style edition controls
+static void DrawStyleEditControls(void)
 {
-  DrawTextBoxedSelectable(font, text, rec, fontSize, spacing, wordWrap, tint, 0, 0, WHITE, WHITE);
-}
+  // ScrollPanel style controls
+  //----------------------------------------------------------
+  GuiGroupBox((Rectangle) { 550, 170, 220, 205 }, "SCROLLBAR STYLE");
 
-// Draw text using font inside rectangle limits with support for text selection
-static void DrawTextBoxedSelectable(Font font, const char* text, Rectangle rec, float fontSize, float spacing, bool wordWrap, Color tint, int selectStart, int selectLength, Color selectTint, Color selectBackTint)
-{
-  int length = TextLength(text);  // Total length in bytes of the text, scanned by codepoints in loop
+  int style = GuiGetStyle(SCROLLBAR, BORDER_WIDTH);
+  GuiLabel((Rectangle) { 555, 195, 110, 10 }, "BORDER_WIDTH");
+  GuiSpinner((Rectangle) { 670, 190, 90, 20 }, NULL, & style, 0, 6, false);
+  GuiSetStyle(SCROLLBAR, BORDER_WIDTH, style);
 
-  float textOffsetY = 0;          // Offset between lines (on line break '\n')
-  float textOffsetX = 0.0f;       // Offset X to next character to draw
+  style = GuiGetStyle(SCROLLBAR, ARROWS_SIZE);
+  GuiLabel((Rectangle) { 555, 220, 110, 10 }, "ARROWS_SIZE");
+  GuiSpinner((Rectangle) { 670, 215, 90, 20 }, NULL, & style, 4, 14, false);
+  GuiSetStyle(SCROLLBAR, ARROWS_SIZE, style);
 
-  float scaleFactor = fontSize / (float)font.baseSize;     // Character rectangle scaling factor
+  style = GuiGetStyle(SCROLLBAR, SLIDER_PADDING);
+  GuiLabel((Rectangle) { 555, 245, 110, 10 }, "SLIDER_PADDING");
+  GuiSpinner((Rectangle) { 670, 240, 90, 20 }, NULL, & style, 0, 14, false);
+  GuiSetStyle(SCROLLBAR, SLIDER_PADDING, style);
 
-  // Word/character wrapping mechanism variables
-  enum { MEASURE_STATE = 0, DRAW_STATE = 1 };
-  int state = wordWrap ? MEASURE_STATE : DRAW_STATE;
+  bool scrollBarArrows = GuiGetStyle(SCROLLBAR, ARROWS_VISIBLE);
+  GuiCheckBox((Rectangle) { 565, 280, 20, 20 }, "ARROWS_VISIBLE", & scrollBarArrows);
+  GuiSetStyle(SCROLLBAR, ARROWS_VISIBLE, scrollBarArrows);
 
-  int startLine = -1;         // Index where to begin drawing (where a line begins)
-  int endLine = -1;           // Index where to stop drawing (where a line ends)
-  int lastk = -1;             // Holds last value of the character position
+  style = GuiGetStyle(SCROLLBAR, SLIDER_PADDING);
+  GuiLabel((Rectangle) { 555, 325, 110, 10 }, "SLIDER_PADDING");
+  GuiSpinner((Rectangle) { 670, 320, 90, 20 }, NULL, & style, 0, 14, false);
+  GuiSetStyle(SCROLLBAR, SLIDER_PADDING, style);
 
-  for (int i = 0, k = 0; i < length; i++, k++)
-  {
-    // Get next codepoint from byte string and glyph index in font
-    int codepointByteCount = 0;
-    int codepoint = GetCodepoint(&text[i], &codepointByteCount);
-    int index = GetGlyphIndex(font, codepoint);
+  style = GuiGetStyle(SCROLLBAR, SLIDER_WIDTH);
+  GuiLabel((Rectangle) { 555, 350, 110, 10 }, "SLIDER_WIDTH");
+  GuiSpinner((Rectangle) { 670, 345, 90, 20 }, NULL, & style, 2, 100, false);
+  GuiSetStyle(SCROLLBAR, SLIDER_WIDTH, style);
 
-    // NOTE: Normally we exit the decoding sequence as soon as a bad byte is found (and return 0x3f)
-    // but we need to draw all of the bad bytes using the '?' symbol moving one byte
-    if (codepoint == 0x3f) codepointByteCount = 1;
-    i += (codepointByteCount - 1);
+  const char* text = GuiGetStyle(LISTVIEW, SCROLLBAR_SIDE) == SCROLLBAR_LEFT_SIDE ? "SCROLLBAR: LEFT" : "SCROLLBAR: RIGHT";
+  bool toggleScrollBarSide = GuiGetStyle(LISTVIEW, SCROLLBAR_SIDE);
+  GuiToggle((Rectangle) { 560, 110, 200, 35 }, text, & toggleScrollBarSide);
+  GuiSetStyle(LISTVIEW, SCROLLBAR_SIDE, toggleScrollBarSide);
+  //----------------------------------------------------------
 
-    float glyphWidth = 0;
-    if (codepoint != '\n')
-    {
-      glyphWidth = (font.glyphs[index].advanceX == 0) ? font.recs[index].width * scaleFactor : font.glyphs[index].advanceX * scaleFactor;
+  // ScrollBar style controls
+  //----------------------------------------------------------
+  GuiGroupBox((Rectangle) { 550, 20, 220, 135 }, "SCROLLPANEL STYLE");
 
-      if (i + 1 < length) glyphWidth = glyphWidth + spacing;
-    }
+  style = GuiGetStyle(LISTVIEW, SCROLLBAR_WIDTH);
+  GuiLabel((Rectangle) { 555, 35, 110, 10 }, "SCROLLBAR_WIDTH");
+  GuiSpinner((Rectangle) { 670, 30, 90, 20 }, NULL, & style, 6, 30, false);
+  GuiSetStyle(LISTVIEW, SCROLLBAR_WIDTH, style);
 
-    // NOTE: When wordWrap is ON we first measure how much of the text we can draw before going outside of the rec container
-    // We store this info in startLine and endLine, then we change states, draw the text between those two variables
-    // and change states again and again recursively until the end of the text (or until we get outside of the container)
-    // When wordWrap is OFF we don't need the measure state so we go to the drawing state immediately
-    // and begin drawing on the next line before we can get outside the container
-    if (state == MEASURE_STATE)
-    {
-      // TODO: There are multiple types of spaces in UNICODE, maybe it's a good idea to add support for more
-      // Ref: http://jkorpela.fi/chars/spaces.html
-      if ((codepoint == ' ') || (codepoint == '\t') || (codepoint == '\n')) endLine = i;
-
-      if ((textOffsetX + glyphWidth) > rec.width)
-      {
-        endLine = (endLine < 1) ? i : endLine;
-        if (i == endLine) endLine -= codepointByteCount;
-        if ((startLine + codepointByteCount) == endLine) endLine = (i - codepointByteCount);
-
-        state = !state;
-      }
-      else if ((i + 1) == length)
-      {
-        endLine = i;
-        state = !state;
-      }
-      else if (codepoint == '\n') state = !state;
-
-      if (state == DRAW_STATE)
-      {
-        textOffsetX = 0;
-        i = startLine;
-        glyphWidth = 0;
-
-        // Save character position when we switch states
-        int tmp = lastk;
-        lastk = k - 1;
-        k = tmp;
-      }
-    }
-    else
-    {
-      if (codepoint == '\n')
-      {
-        if (!wordWrap)
-        {
-          textOffsetY += (font.baseSize + font.baseSize / 2) * scaleFactor;
-          textOffsetX = 0;
-        }
-      }
-      else
-      {
-        if (!wordWrap && ((textOffsetX + glyphWidth) > rec.width))
-        {
-          textOffsetY += (font.baseSize + font.baseSize / 2) * scaleFactor;
-          textOffsetX = 0;
-        }
-
-        // When text overflows rectangle height limit, just stop drawing
-        if ((textOffsetY + font.baseSize * scaleFactor) > rec.height) break;
-
-        // Draw selection background
-        bool isGlyphSelected = false;
-        if ((selectStart >= 0) && (k >= selectStart) && (k < (selectStart + selectLength)))
-        {
-          DrawRectangleRec((Rectangle) { rec.x + textOffsetX - 1, rec.y + textOffsetY, glyphWidth, (float)font.baseSize* scaleFactor }, selectBackTint);
-          isGlyphSelected = true;
-        }
-
-        // Draw current character glyph
-        if ((codepoint != ' ') && (codepoint != '\t'))
-        {
-          DrawTextCodepoint(font, codepoint, (Vector2) { rec.x + textOffsetX, rec.y + textOffsetY }, fontSize, isGlyphSelected ? selectTint : tint);
-        }
-      }
-
-      if (wordWrap && (i == endLine))
-      {
-        textOffsetY += (font.baseSize + font.baseSize / 2) * scaleFactor;
-        textOffsetX = 0;
-        startLine = endLine;
-        endLine = -1;
-        glyphWidth = 0;
-        selectStart += lastk - k;
-        k = lastk;
-
-        state = !state;
-      }
-    }
-
-    if ((textOffsetX != 0) || (codepoint != ' ')) textOffsetX += glyphWidth;  // avoid leading spaces
-  }
+  style = GuiGetStyle(DEFAULT, BORDER_WIDTH);
+  GuiLabel((Rectangle) { 555, 60, 110, 10 }, "BORDER_WIDTH");
+  GuiSpinner((Rectangle) { 670, 55, 90, 20 }, NULL, & style, 0, 20, false);
+  GuiSetStyle(DEFAULT, BORDER_WIDTH, style);
+  //----------------------------------------------------------
 }
