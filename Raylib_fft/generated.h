@@ -2,8 +2,7 @@
 #pragma once
 #include "custom_types.h"
 #include "arena.h"
-#include "types.h"
-
+#include "types.h"¬
 typedef struct {
   isize count;
   isize capacity;
@@ -14,7 +13,6 @@ typedef struct {
 Sequence Sequence_empty(Arena* arena, isize capacity);
 
 void Sequence_add(Arena* arena, Sequence* s, Complex c);
-
 
 Sequence Sequence_clone(Arena* arena, Sequence s);;
 
@@ -30,7 +28,6 @@ f64Arr f64Arr_empty(Arena* arena, isize capacity);
 
 void f64Arr_add(Arena* arena, f64Arr* s, f64 c);
 
-
 f64Arr f64Arr_clone(Arena* arena, f64Arr s);;
 
 
@@ -44,7 +41,6 @@ typedef struct {
 PeakFreqArray PeakFreqArray_empty(Arena* arena, isize capacity);
 
 void PeakFreqArray_add(Arena* arena, PeakFreqArray* s, PeakFreq c);
-
 
 PeakFreqArray PeakFreqArray_clone(Arena* arena, PeakFreqArray s);;
 

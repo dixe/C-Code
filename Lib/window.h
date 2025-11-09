@@ -2,7 +2,7 @@
 
 #include "custom_types.h"
 #include "s_string.h"
-
+#include <windows.h>
 
 
 typedef enum {

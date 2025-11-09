@@ -83,41 +83,12 @@ void add_array_header(s8* header_output, s8Slice type_name, s8Slice struct_name)
   
 
   s8_append(&data_arena, header_output, replaced);
-  s8_append(&data_arena, header_output, s8_from_literal(";\n\n"));
+  s8_append(&data_arena, header_output, s8_from_literal(";\n"));
 
   // fake reset arena
   templates_arena.offset = arena_offset;
 
 }
-//
-//void add_array_header(s8* header_output, s8Slice type_name, s8Slice struct_name)
-//{
-//  if (array_template_h.data == 0)
-//  {
-//    load_array_template();
-//  }
-//
-//  isize arena_offset = templates_arena.offset;
-//  s8 replaced = s8_replace(&templates_arena, array_template_c, s8_from_literal("TYPENAME"), type_name.str);
-//  // could be replace_inline
-//  replaced = s8_replace(&templates_arena, replaced, s8_from_literal("STRUCTNAME"), struct_name.str);
-//
-//
-//  s8_append(&data_arena, code_output, replaced);
-//  s8_append(&data_arena, code_output, s8_from_literal(";\n\n"));
-//
-//  // fake reset arena
-//  templates_arena.offset = arena_offset;
-//
-//
-//
-//  s8 struct_start = s8_from_literal("typedef struct {\n  isize count;\n  isize capacity;\n ");
-//  s8_append(&data_arena, header_output, struct_start);
-//  s8_append(&data_arena, header_output, type_name.str);
-//  s8_append(&data_arena, header_output, s8_from_literal("* data;\n}"));
-//  s8_append(&data_arena, header_output, struct_name.str);
-//  s8_append(&data_arena, header_output, s8_from_literal(";\n\n"));
-//}
 
 void add_array(s8* header_output, s8* code_output, s8Slice next_line)
 {

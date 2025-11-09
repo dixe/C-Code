@@ -31,6 +31,9 @@
     <ClCompile Include="..\Lib\dyn_array.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\Lib\s_string.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="raygui.h">
@@ -46,6 +49,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Lib\dyn_array.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Lib\s_string.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

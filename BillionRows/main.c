@@ -26,7 +26,7 @@ int main()
   isize chunk_size = 256;
   Arena input_data = arena_create(chunk_size);
 
-  FileIter* iter = arena_alloc(&input_data, FileIter);
+  FileIter* iter = arena_alloc(&input_data, FileIter, 1);
   s8 buffer = s8_empty(&input_data, input_data.cap - input_data.offset);
 
 
@@ -40,7 +40,7 @@ int main()
 
   arena_reset(&input_data);
 
-  iter = arena_alloc(&input_data, FileIter);
+  iter = arena_alloc(&input_data, FileIter, 1);
 
 
   isize line_size = 256;
@@ -63,7 +63,7 @@ int main()
   arena_reset(&input_data);
   arena_reset(&line_arena);
 
-  iter = arena_alloc(&input_data, FileIter);
+  iter = arena_alloc(&input_data, FileIter, 1);
   buffer = s8_empty(&input_data, input_data.cap - input_data.offset);
 
   file_init_iter(iter, "E:\\repos\\C-Code\\BillionRows\\meassurement.txt", buffer);

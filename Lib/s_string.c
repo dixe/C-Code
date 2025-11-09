@@ -8,7 +8,7 @@ s8 s8_from_c_str(u8* lit_str) {
   s8 s;
   s.data = lit_str;
   s.byte_len = strlen(lit_str);
-  s.capacity = s.byte_len;
+  s.capacity = s.byte_len + 1;
   return s;
 }
 
@@ -16,7 +16,8 @@ s8 s8_from_bytes(u8* bytes, isize count) {
   s8 s;
   s.data = bytes;
   s.byte_len = count;
-  s.capacity = s.byte_len;
+  s.capacity = s.byte_len + 1;
+  s.data[s.capacity - 1] = 0;
   return s;
 }
 
@@ -34,7 +35,7 @@ s8 s8_empty(Arena* arena, isize capacity)
   s8 s;
   s.data = 0;
   s.byte_len = 0;
-  s.capacity = capacity;
+  s.capacity = capacity + 1;
   if (capacity == 0)
   {
     return s;
@@ -42,9 +43,9 @@ s8 s8_empty(Arena* arena, isize capacity)
 
   u8* buffer = arena_alloc(arena, u8, capacity);
   s.data = buffer;
+  s.data[capacity] = 0;
   return s;
 }
-
 
 
 s8 s8_f64_to_s8(Arena* arena, f64 num, isize presicion)
@@ -239,11 +240,11 @@ void s8_append(Arena* a, s8* dest, s8 src)
 void s8_append_substring(Arena* a, s8* dest, s8 src, isize src_start, isize src_end)
 {
   // check if we have capacity, otherwise copy grow dest
-  isize space = dest->capacity - dest->byte_len;
+  isize space = dest->capacity - 1 - dest->byte_len;
   isize src_len = src_end - src_start;
   if (space < src_end - src_start)
   {
-    isize additional = src_end - src_start - space;
+    isize additional = src_end - src_start - space - 1;
     isize err = s8_grow_by(a, dest, additional);
   }
   memcpy(dest->data + dest->byte_len, src.data + src_start, src_len);
@@ -264,8 +265,11 @@ void s8_append_zero(Arena* a, s8* dest) {
 isize s8_grow_by(Arena* a, s8* s, isize additionalBytes)
 {
   // fix this so we copy if new alloc
+  // room for c string \0 termniator
+  
+  additionalBytes += 1;
   u8* new_ptr = (u8*)arena_realloc(a, s->data, s->capacity, s->capacity + additionalBytes );
-  s->capacity = s->capacity + additionalBytes;
+  s->capacity = s->capacity + additionalBytes ;
 
   if (new_ptr == s->data)
   {
@@ -275,6 +279,7 @@ isize s8_grow_by(Arena* a, s8* s, isize additionalBytes)
   // copy old data
   memcpy(new_ptr, s->data, s->byte_len);
   s->data = new_ptr; 
+  s->data[s->capacity - 1] = 0;
   
   return 0;
 }

@@ -5,6 +5,8 @@
 #include "raygui.h"
 #pragma warning(pop)
 
+#include "s_string.h"
+
 #include "arena.h"
 #include "hashmap.h"
 #include "generated.h"
@@ -49,10 +51,6 @@ int main(void)
   Segment a0 = { 0, 300 };
   Segment a1 = { 0.0, 150 };
   Segment a2 = { 0.0, 120 };
-
-  Segments_add(&ctx.perm_arena, &ctx.segments, a0);
-  Segments_add(&ctx.perm_arena, &ctx.segments, a1);
-  Segments_add(&ctx.perm_arena, &ctx.segments, a2);
 
 
   // Main game loop
